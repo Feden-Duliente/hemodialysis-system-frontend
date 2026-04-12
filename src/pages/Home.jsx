@@ -55,7 +55,7 @@ export default function Home() {
     }, []);
 
     return (
-        <div className="flex flex-col items-center justify-center gap-3 mt-5 pb-4">
+        <div className="flex flex-col items-center justify-center gap-3 mt-[4.4rem] pb-4">
             <div className="flex gap-3">
 
                 {/* dashboard cards */}
@@ -832,6 +832,7 @@ export default function Home() {
                         )}
                     </div>
                 </div>
+
             </div>
 
             <div className="flex gap-3">
@@ -850,6 +851,7 @@ export default function Home() {
                                 </tr>
                                 </thead>
                                 <tbody>
+
                                     <tr className="border-b border-gray-200 hover:bg-gray-200">
                                         <td className="py-1 px-4 text-[9px] text-black text-center">Juan Dela Cruz</td>
                                         <td className="py-1 px-4 text-[9px] text-black text-center">8:00 PM</td>
@@ -867,6 +869,7 @@ export default function Home() {
                                             </div>
                                         </td>
                                     </tr>
+
                                     <tr className="border-b border-gray-200">
                                         <td className="py-1 px-4 text-[9px] text-black text-center">Freiden Duliente</td>
                                         <td className="py-1 px-4 text-[9px] text-black text-center">8:30 PM</td>
@@ -884,7 +887,8 @@ export default function Home() {
                                             </div>
                                         </td>
                                     </tr>
-                                    <tr className="border-b border-gray-200">
+
+                                    <tr className="border-b border-gray-200 hover:bg-gray-200">
                                         <td className="py-1 px-4 text-[9px] text-black text-center">Wei Wuxian</td>
                                         <td className="py-1 px-4 text-[9px] text-black text-center">9:10 PM</td>
                                         <td className="py-1 px-4 text-[9px] text-black text-center relative">
@@ -923,6 +927,7 @@ export default function Home() {
                                             </div>
                                         </td>
                                     </tr>
+                                    
                                 </tbody>
                             </table>
                         </div>
