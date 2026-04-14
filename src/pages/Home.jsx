@@ -166,14 +166,14 @@ export default function Home() {
                         </div>
 
                         <div className="flex items-center justify-center">
-                            <button className="px-2 py-1 flex items-center justify-center shadow-lg rounded-[1px] bg-[#00682F] gap-2 hover:bg-green-600">
+                            <button className="p-2 flex items-center justify-center shadow-lg rounded-[1px] bg-[#00682F] gap-2 hover:bg-green-600">
                                 <img src={download} className="w-3 h-3" />
                                 <span className="text-white text-[9px] font-medium">Download Patients</span>
                             </button>
                         </div>
 
                         <div className="flex items-center justify-center">
-                            <button onClick={() => setOpenAddPatient(true)} className="px-5 py-1 flex items-center justify-center shadow-lg rounded-[1px] bg-[#0B2A66] gap-2 hover:bg-blue-600">
+                            <button onClick={() => setOpenAddPatient(true)} className="px-5 py-2 flex items-center justify-center shadow-lg rounded-[1px] bg-[#0B2A66] gap-2 hover:bg-blue-600">
                                 <img src={addPatient} className="w-3 h-3" />
                                 <span className="text-white text-[9px] font-medium">Add Patient</span>
                             </button>

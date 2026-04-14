@@ -64,7 +64,8 @@ const doctorData = {
         "medical-assessment",
         "treatment-plan-review"
     ],
-  totalFee: 7200
+  totalFee: 7200,
+  status: "scheduled"
 };
 // end: hardcoded data
 
@@ -102,7 +103,7 @@ export default function DoctorFees() {
                 </div>
 
                 <div className="flex items-center justify-center">
-                    <button className="px-2 py-1 flex items-center justify-center shadow-lg rounded-[1px] bg-[#00682F] gap-2 hover:bg-green-600">
+                    <button className="p-2 flex items-center justify-center shadow-lg rounded-[1px] bg-[#00682F] gap-2 hover:bg-green-600">
                         <img src={download} className="w-3 h-3" />
                         <span className="text-white text-[9px] font-medium">
                             Download Fees Report
@@ -308,7 +309,7 @@ export default function DoctorFees() {
                     </div>
 
                     <div className="flex items-center justify-center gap-2">
-                        <button onClick={() => setOpenAddDoctor(true)} className="px-4 py-1 flex items-center justify-center shadow-lg rounded-[1px] bg-[#00682F] gap-2 hover:bg-green-600">
+                        <button onClick={() => setOpenAddDoctor(true)} className="px-4 py-2 flex items-center justify-center shadow-lg rounded-[1px] bg-[#00682F] gap-2 hover:bg-green-600">
                             <img src={addPatient} className="w-3 h-3" />
                             <span className="text-white text-[9px] font-medium">
                                 Add Doctor
@@ -317,7 +318,7 @@ export default function DoctorFees() {
 
                         
 
-                        <button onClick={() => { if (!editDoctor) return; setOpenUpdateDoctor(true); }} className="px-4 py-1 flex items-center justify-center shadow-lg rounded-[1px] bg-[#C09200] gap-2 hover:bg-[#C09200]/70">
+                        <button onClick={() => { if (!editDoctor) return; setOpenUpdateDoctor(true); }} className="px-4 py-2 flex items-center justify-center shadow-lg rounded-[1px] bg-[#C09200] gap-2 hover:bg-[#C09200]/70">
                             <img src={update} className="w-3 h-3" />
                             <span className="text-white text-[9px] font-medium"> Update Doctor </span>
                         </button>

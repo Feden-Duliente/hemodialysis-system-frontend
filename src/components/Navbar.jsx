@@ -79,7 +79,7 @@ export default function Navbar() {
           <Link to="/expiring-labs">
             <div className="flex items-center gap-1 text-black cursor-pointer hover:bg-gray-300/70 rounded-[5px] py-[5px] px-[8px]">
               <BeakerIcon className="h-3 w-3" />
-              <span className="text-[10px]">Expiring Labs</span>
+              <span className="text-[10px]">Laboratories</span>
             </div>
           </Link>
 
