@@ -78,6 +78,7 @@ export default function DoctorFees() {
     const [openUpdateDoctor, setOpenUpdateDoctor] = useState(false);
     const [selectedDoctor, setSelectedDoctor] = useState(null);
     const [editDoctor, setEditDoctor] = useState(null);
+    const [openDownloadDropdown, setOpenDownloadDropdown] = useState(false);
 
     const statusStyle = {
         Paid: "bg-green-200 text-green-900",
@@ -102,13 +103,25 @@ export default function DoctorFees() {
                     </div>
                 </div>
 
-                <div className="flex items-center justify-center">
-                    <button className="p-2 flex items-center justify-center shadow-lg rounded-[1px] bg-[#00682F] gap-2 hover:bg-green-600">
+                <div className="relative flex items-center justify-center gap-2">
+                    
+                    <button onClick={() => setOpenDownloadDropdown(!openDownloadDropdown)} className="px-4 py-[6px] flex items-center justify-center shadow-lg rounded-[1px] bg-[#00682F] gap-2 hover:bg-green-600"  >
                         <img src={download} className="w-3 h-3" />
-                        <span className="text-white text-[9px] font-medium">
-                            Download Fees Report
-                        </span>
+                        <span className="text-white text-[9px] font-medium"> Download Report </span>
                     </button>
+
+
+                    {openDownloadDropdown && (
+                        <div className="absolute top-full mt-1 w-[10rem] bg-white shadow-md rounded text-[10px] z-10">
+                            
+                            <button onClick={() => { downloadPDF(); setOpenDownloadDropdown(false); }}  className="w-full text-left px-3 py-2 hover:bg-green-100" > PDF (All Patients Report) </button>
+                            <button onClick={() => { console.log("Download Excel"); setOpenDownloadDropdown(false); }} className="w-full text-left px-3 py-2 hover:bg-green-100" > PDF (Patients Only) </button>
+                            <button onClick={() => { console.log("Download CSV"); setOpenDownloadDropdown(false); }} className="w-full text-left px-3 py-2 hover:bg-green-100" > Excel (All Patients Report) </button>
+                            <button onClick={() => { console.log("Download CSV"); setOpenDownloadDropdown(false);  }} className="w-full text-left px-3 py-2 hover:bg-green-100" > Excel (Patients Only) </button>
+
+                        </div>
+                    )}
+
                 </div>
             </div>
 
@@ -119,7 +132,7 @@ export default function DoctorFees() {
                 <div className="w-full flex flex-wrap gap-3 justify-center">
 
                     {/* card 1 */}
-                    <div className="w-[200px] h-[100px] bg-[#690B69]/10 shadow-md p-3 overflow-hidden gap-3 flex flex-col items-start justify-center hover:scale-105 transition-transform duration-200 ease-in-out">
+                    <div className="w-[200px] h-[100px] bg-[#690B69]/10 shadow-md p-3 overflow-hidden gap-3 flex flex-col items-start justify-center hover:scale-105 transition-transform duration-200 ease-in-out rounded-[1px]">
                         <div className="h-full flex items-center justify-between gap-2 w-full mt-1">
                             <div className="flex items-center justify-center">
                                 <div className="flex items-center justify-center bg-[#690B69] rounded-[5px] h-6 w-6">
@@ -130,7 +143,7 @@ export default function DoctorFees() {
                                 <h2 className="text-[#690B69]/90 text-[16px] font-bold leading-none">
                                     ₱33,600.00
                                 </h2>
-                                <h2 className="text-[#690B69]/70 text-[9px] font-medium">
+                                <h2 className="text-[#690B69]/70 text-[10px] font-medium">
                                     5 doctors, 18 patients
                                 </h2>
                             </div>
@@ -140,12 +153,12 @@ export default function DoctorFees() {
                             <h2 className="text-[#690B69]/90 text-[12px] font-bold">
                                 Total Professional Fees
                             </h2>
-                            <h2 className="text-[#690B69]/80 text-[9px]">Daily total</h2>
+                            <h2 className="text-[#690B69]/80 text-[10px]">Daily total</h2>
                         </div>
                     </div>
 
                     {/* card 2 */}
-                    <div className="w-[200px] h-[100px] bg-green-100/80 shadow-md p-3 overflow-hidden gap-3 flex flex-col items-start justify-center hover:scale-105 transition-transform duration-200 ease-in-out">
+                    <div className="w-[200px] h-[100px] bg-green-100/80 shadow-md p-3 overflow-hidden gap-3 flex flex-col items-start justify-center hover:scale-105 transition-transform duration-200 ease-in-out rounded-[1px]">
                         <div className="h-full flex items-center justify-between gap-2 w-full mt-1">
                             <div className="flex items-center justify-center">
                                 <div className="flex items-center justify-center bg-[#00682F] rounded-[5px] h-6 w-6">
@@ -156,18 +169,18 @@ export default function DoctorFees() {
                                 <h2 className="text-green-900 text-[16px] font-bold leading-none">
                                     ₱7,200.00
                                 </h2>
-                                <h2 className="text-green-700 text-[9px] font-medium">1 doctor</h2>
+                                <h2 className="text-green-700 text-[10px] font-medium">1 doctor</h2>
                             </div>
                         </div>
 
                         <div className="flex flex-col items-start justify-center mb-2">
                             <h2 className="text-green-900 text-[12px] font-bold">Paid</h2>
-                            <h2 className="text-green-800 text-[9px]">Fees already disbursed</h2>
+                            <h2 className="text-green-800 text-[10px]">Fees already disbursed</h2>
                         </div>
                     </div>
 
                     {/* card 3 */}
-                    <div className="w-[200px] h-[100px] bg-blue-100/80 shadow-md p-3 overflow-hidden gap-3 flex flex-col items-start justify-center hover:scale-105 transition-transform duration-200 ease-in-out">
+                    <div className="w-[200px] h-[100px] bg-blue-100/80 shadow-md p-3 overflow-hidden gap-3 flex flex-col items-start justify-center rounded-[1px] hover:scale-105 transition-transform duration-200 ease-in-out">
                         <div className="h-full flex items-center justify-between gap-2 w-full mt-1">
                             <div className="flex items-center justify-center">
                                 <div className="flex items-center justify-center bg-[#002060] rounded-[5px] h-6 w-6">
@@ -178,18 +191,18 @@ export default function DoctorFees() {
                                 <h2 className="text-blue-900 text-[16px] font-bold leading-none">
                                     ₱14,600.00
                                 </h2>
-                                <h2 className="text-blue-700 text-[9px] font-medium">1 doctor</h2>
+                                <h2 className="text-blue-700 text-[10px] font-medium">1 doctor</h2>
                             </div>
                         </div>
 
                         <div className="flex flex-col items-start justify-center mb-2">
                             <h2 className="text-blue-900 text-[12px] font-bold">Processed</h2>
-                            <h2 className="text-blue-800 text-[9px]">Ready for payment</h2>
+                            <h2 className="text-blue-800 text-[10px]">Ready for payment</h2>
                         </div>
                     </div>
 
                     {/* card 4 */}
-                    <div className="w-[200px] h-[100px] bg-orange-100/80 shadow-md p-3 overflow-hidden gap-3 flex flex-col items-start justify-center hover:scale-105 transition-transform duration-200 ease-in-out">
+                    <div className="w-[200px] h-[100px] bg-orange-100/80 shadow-md p-3 overflow-hidden gap-3 flex flex-col items-start justify-center rounded-[1px] hover:scale-105 transition-transform duration-200 ease-in-out">
                         <div className="h-full flex items-center justify-between gap-2 w-full mt-1">
                             <div className="flex items-center justify-center">
                                 <div className="flex items-center justify-center bg-[#C09200] rounded-[5px] h-6 w-6">
@@ -200,13 +213,13 @@ export default function DoctorFees() {
                                 <h2 className="text-orange-900 text-[16px] font-bold leading-none">
                                     ₱11,800.00
                                 </h2>
-                                <h2 className="text-orange-700 text-[9px] font-medium">2 doctor</h2>
+                                <h2 className="text-orange-700 text-[10px] font-medium">2 doctor</h2>
                             </div>
                         </div>
 
                         <div className="flex flex-col items-start justify-center mb-2">
                             <h2 className="text-orange-900 text-[12px] font-bold">Pending</h2>
-                            <h2 className="text-orange-800 text-[9px]">Awaiting processing</h2>
+                            <h2 className="text-orange-800 text-[10px]">Awaiting processing</h2>
                         </div>
                     </div>
 
@@ -238,7 +251,7 @@ export default function DoctorFees() {
                                             {pieData.map((entry, index) => ( <Cell key={`cell-${index}`} fill={COLORS[index]} /> ))}
                                         </Pie>
                                         <Tooltip />
-                                        <Legend wrapperStyle={{ fontSize: "9px" }} />
+                                        <Legend wrapperStyle={{ fontSize: "10px" }} />
                                     </PieChart>
                                 </ResponsiveContainer>
                             </div>
@@ -260,9 +273,9 @@ export default function DoctorFees() {
                                             interval={0}
                                             angle={-20}
                                             textAnchor="end"
-                                            tick={{ fontSize: 8 }}
+                                            tick={{ fontSize: 10 }}
                                         />
-                                        <YAxis tick={{ fontSize: 8 }} />
+                                        <YAxis tick={{ fontSize: 10 }} />
                                         <Tooltip />
 
                                         <Bar dataKey="totalFees" fill="#113479" radius={0} />
@@ -284,12 +297,12 @@ export default function DoctorFees() {
 
                             <XAxis
                                 dataKey="doctor"
-                                fontSize={8}
+                                fontSize={10}
                                 interval={0}
                                 angle={-25}
                                 textAnchor="end"
                             />
-                            <YAxis tick={{ fontSize: 8 }} />
+                            <YAxis tick={{ fontSize: 10 }} />
                             <Tooltip />
 
                             <Bar dataKey="totalFees" fill="#002060" radius={0} />
@@ -309,16 +322,16 @@ export default function DoctorFees() {
                     </div>
 
                     <div className="flex items-center justify-center gap-2">
-                        <button onClick={() => setOpenAddDoctor(true)} className="px-4 py-2 flex items-center justify-center shadow-lg rounded-[1px] bg-[#00682F] gap-2 hover:bg-green-600">
+                        <button onClick={() => setOpenAddDoctor(true)} className="px-4 py-[6px] flex items-center justify-center shadow-lg rounded-[1px] bg-[#00682F] gap-2 hover:bg-green-600">
                             <img src={addPatient} className="w-3 h-3" />
-                            <span className="text-white text-[9px] font-medium">
+                            <span className="text-white text-[10px] font-medium">
                                 Add Doctor
                             </span>
                         </button>
 
                         
 
-                        <button onClick={() => { if (!editDoctor) return; setOpenUpdateDoctor(true); }} className="px-4 py-2 flex items-center justify-center shadow-lg rounded-[1px] bg-[#C09200] gap-2 hover:bg-[#C09200]/70">
+                        <button onClick={() => { if (!editDoctor) return; setOpenUpdateDoctor(true); }} className="px-4 py-[6px] flex items-center justify-center shadow-lg rounded-[1px] bg-[#C09200] gap-2 hover:bg-[#C09200]/70">
                             <img src={update} className="w-3 h-3" />
                             <span className="text-white text-[9px] font-medium"> Update Doctor </span>
                         </button>
@@ -405,7 +418,7 @@ export default function DoctorFees() {
                                         </div>
                                     </div>
 
-                                    <button className="w-full py-1 bg-[#002060] hover:bg-blue-600 flex items-center justify-center shadow-md text-white text-[10px] mt-4 font-medium">Submit</button>
+                                    <button className="w-full py-1 bg-[#002060] hover:bg-blue-600 flex items-center rounded-[3px] justify-center shadow-md text-white text-[10px] mt-4 font-medium">Submit</button>
                                 </form>
                             </div>
                         </div>
@@ -475,7 +488,7 @@ export default function DoctorFees() {
                                         </div>
                                     </div>
 
-                                    <button className="w-full py-1 bg-[#002060] hover:bg-blue-600 flex items-center justify-center shadow-md text-white text-[10px] mt-4 font-medium">Submit</button>
+                                    <button className="w-full py-1 bg-[#002060] hover:bg-blue-600 flex items-center justify-center rounded-[3px] shadow-md text-white text-[10px] mt-4 font-medium">Submit</button>
                                 </form>
                             </div>
                         </div>
@@ -503,11 +516,11 @@ export default function DoctorFees() {
 
                                     <tr onClick={() => { if (selectedDoctor?.id === doctorData.id) { setSelectedDoctor(null); setEditDoctor(null); } else { setSelectedDoctor(doctorData); setEditDoctor({ ...doctorData, specialization: [...doctorData.specialization], services: [...doctorData.services], }); } }} className={`border-b border-gray-200 hover:bg-gray-200 cursor-pointer ${ selectedDoctor?.id === doctorData.id ? "bg-gray-300" : "" }`} >
                                         
-                                        <td className="py-1 px-4 text-[9px] text-black text-center"> Dr. Jennifer Cortez</td>
+                                        <td className="py-1 px-4 text-[10px] text-black text-center"> Dr. Jennifer Cortez</td>
 
-                                        <td className="py-1 px-4 text-[9px] text-black text-center relative">
-                                            <div onClick={() => setOpenStatusMenu(!openStatusMenu)} className={`w-[50px] flex items-center justify-center py-1 px-2 rounded-lg cursor-pointer ${statusStyle[status]}`} >
-                                                <h2 className="text-[8px] font-bold">
+                                        <td className="py-1 px-4 text-[10px] text-black text-center relative">
+                                            <div onClick={() => setOpenStatusMenu(!openStatusMenu)} className={`w-[60px] flex items-center justify-center py-1 px-2 rounded-[1px] cursor-pointer ${statusStyle[status]}`} >
+                                                <h2 className="text-[9px] font-bold">
                                                     {status}
                                                 </h2>
                                             </div>
@@ -516,15 +529,15 @@ export default function DoctorFees() {
                                             {openStatusMenu && (
                                                 <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 w-24 bg-white shadow-lg border border-gray-300 z-50">
 
-                                                    <div onClick={() => { setStatus("Paid"); setOpenStatusMenu(false); }} className="px-2 py-1 text-[9px] hover:bg-green-100 text-green-900 cursor-pointer" >
+                                                    <div onClick={() => { setStatus("Paid"); setOpenStatusMenu(false); }} className="px-2 py-1 text-[10px] hover:bg-green-100 text-green-900 cursor-pointer" >
                                                         Paid
                                                     </div>
 
-                                                    <div onClick={() => { setStatus("Process"); setOpenStatusMenu(false); }} className="px-2 py-1 text-[9px] hover:bg-blue-100 text-blue-900 cursor-pointer" >
+                                                    <div onClick={() => { setStatus("Process"); setOpenStatusMenu(false); }} className="px-2 py-1 text-[10px] hover:bg-blue-100 text-blue-900 cursor-pointer" >
                                                         Process
                                                     </div>
 
-                                                    <div onClick={() => { setStatus("Pending"); setOpenStatusMenu(false);  }} className="px-2 py-1 text-[9px] hover:bg-orange-100 text-orange-900 cursor-pointer" >
+                                                    <div onClick={() => { setStatus("Pending"); setOpenStatusMenu(false);  }} className="px-2 py-1 text-[10px] hover:bg-orange-100 text-orange-900 cursor-pointer" >
                                                         Pending
                                                     </div>
 
@@ -533,13 +546,13 @@ export default function DoctorFees() {
 
                                         </td>
 
-                                        <td className="py-1 px-4 text-[9px] text-black text-center">Nephrologist</td>
+                                        <td className="py-1 px-4 text-[10px] text-black text-center">Nephrologist</td>
 
-                                        <td className="py-1 px-4 text-[9px] text-black text-center">4</td>
+                                        <td className="py-1 px-4 text-[10px] text-black text-center">4</td>
 
-                                        <td className="py-1 px-4 text-[9px] text-black text-center">₱1,500.00</td>
+                                        <td className="py-1 px-4 text-[10px] text-black text-center">₱1,500.00</td>
 
-                                        <td className="py-1 px-4 text-[9px] text-black text-left ml-2">
+                                        <td className="py-1 px-4 text-[10px] text-black text-left ml-2">
                                             <div className="flex flex-col gap-[2px]">
                                             <span>Hemodialysis Supervision</span>
                                             <span>Medical Assessment</span>
@@ -547,7 +560,7 @@ export default function DoctorFees() {
                                             </div>
                                         </td>
 
-                                        <td className="py-1 px-4 text-[9px] text-black text-center font-medium">₱7,200.00</td>
+                                        <td className="py-1 px-4 text-[10px] text-black text-center font-medium">₱7,200.00</td>
 
                                     </tr>
                                     

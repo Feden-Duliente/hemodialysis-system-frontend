@@ -6,6 +6,7 @@ import ActivityLogs from "./pages/ActivityLogs";
 import ExpiringLabs from "./pages/ExpiringLabs";
 import Philhealth from "./pages/PhilHealth";
 import Schedules from "./pages/Schedules";
+import ReportLayout from "./pages/philHealthReport";
 
 
 export default function App() {
@@ -19,6 +20,7 @@ export default function App() {
             <Route path="/expiring-labs" element={<ExpiringLabs />} />
             <Route path="/philhealth" element={<Philhealth />} />
             <Route path="/schedules" element={<Schedules />} />
+            <Route path="/report" element={<ReportLayout />} />
           </Route>
         </Routes>
     </Router>

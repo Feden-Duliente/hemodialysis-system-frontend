@@ -48,7 +48,7 @@ export default function Navbar() {
 
   return (
     <>
-      <div className="w-full bg-white shadow px-8 py-2 flex justify-between items-center border-t">
+      <div className="w-full bg-white shadow px-8 py-3 flex justify-between items-center border-t">
 
         {/* logo */}
         <div className="flex items-center justify-center">
@@ -63,7 +63,7 @@ export default function Navbar() {
           <Link to="/">
             <div className="flex items-center gap-1 text-black cursor-pointer hover:bg-gray-300/70 rounded-[5px] py-[5px] px-[8px]">
                 <HomeIcon className="h-3 w-3" />
-                <span className="text-[10px]">Home</span>
+                <span className="text-[12px] font-medium">Home</span>
             </div>
           </Link>
 
@@ -71,7 +71,7 @@ export default function Navbar() {
           <Link to="/doctor-fees">
             <div className="flex items-center gap-1 text-black cursor-pointer hover:bg-gray-300/70 rounded-[5px] py-[5px] px-[8px]">
                 <CurrencyDollarIcon className="h-3 w-3" />
-                <span className="text-[10px]">Doctor Fees</span>
+                <span className="text-[12px] font-medium">Doctor Fees</span>
             </div>
           </Link>
 
@@ -79,7 +79,7 @@ export default function Navbar() {
           <Link to="/expiring-labs">
             <div className="flex items-center gap-1 text-black cursor-pointer hover:bg-gray-300/70 rounded-[5px] py-[5px] px-[8px]">
               <BeakerIcon className="h-3 w-3" />
-              <span className="text-[10px]">Laboratories</span>
+              <span className="text-[12px] font-medium">Laboratories</span>
             </div>
           </Link>
 
@@ -87,7 +87,7 @@ export default function Navbar() {
           <Link to="/philhealth">
             <div className="flex items-center gap-1 text-black cursor-pointer hover:bg-gray-300/70 rounded-[5px] py-[5px] px-[8px]">
               <IdentificationIcon className="h-3 w-3" />
-              <span className="text-[10px]">PhilHealth</span>
+              <span className="text-[12px] font-medium">PhilHealth</span>
             </div>
           </Link>
 
@@ -95,7 +95,7 @@ export default function Navbar() {
           <Link to="/schedules">
             <div className="flex items-center gap-1 text-black cursor-pointer hover:bg-gray-300/70 rounded-[5px] py-[5px] px-[8px]">
               <CalendarDaysIcon className="h-3 w-3" />
-              <span className="text-[10px]">Schedules</span>
+              <span className="text-[12px] font-medium">Schedules</span>
             </div>
           </Link>
 
@@ -103,7 +103,7 @@ export default function Navbar() {
           <Link to="activity-logs">
             <div className="flex items-center gap-1 text-black cursor-pointer hover:bg-gray-300/70 rounded-[5px] py-[5px] px-[8px]">
               <ClipboardDocumentListIcon className="h-3 w-3" />
-              <span className="text-[10px]">Activity Logs</span>
+              <span className="text-[12px] font-medium">Activity Logs</span>
             </div>
           </Link>
 
@@ -112,14 +112,14 @@ export default function Navbar() {
         {/* AI assistant */}
         <div onClick={() => setOpen(true)} className="flex items-center justify-center gap-2 hover:bg-gray-300/70 rounded-[5px] py-[5px] px-[8px] cursor-pointer">
           <img src={bot} className="h-3 w-3" />
-          <span className="text-[10px]">AI Assistant</span>
+          <span className="text-[12px] font-medium">AI Assistant</span>
         </div>
 
 
         {/* logout */}
         <div className="flex items-center justify-center gap-2 hover:bg-gray-300/70 rounded-[5px] py-[5px] px-[8px]">
           <img src={logout} className="h-3 w-3" />
-          <span className="text-sm font-medium text-[10px]">Logout</span>
+          <span className="font-medium text-[12px]">Logout</span>
         </div>
       </div>
       

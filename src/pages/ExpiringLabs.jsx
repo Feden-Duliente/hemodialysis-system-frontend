@@ -9,6 +9,8 @@ import wangLin from "../assets/wangLin.jpg";
 import download from "../assets/download.png";
 import close2 from "../assets/close2.png";
 import logo from "../assets/hemodialysis.png";
+import labwarning from "../assets/labwarning.png";
+import searchIcon from "../assets/search.png";
 import { useState, useEffect } from "react";
 
 export default function ExpiringLabs() {
@@ -21,6 +23,7 @@ export default function ExpiringLabs() {
     const [expiryTime, setExpiryTime] = useState("");
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [search, setSearch] = useState("");
+    const [openDownloadDropdown, setOpenDownloadDropdown] = useState(false);
     const [patients, setPatients] = useState([
         { id: 1, name: "Wang Lin" },
         { id: 2, name: "Wei Wuxian" },
@@ -86,86 +89,117 @@ export default function ExpiringLabs() {
 
 
     return (
-      <div className="h-screen overflow-y-auto no-scrollbar flex flex-col items-start justify-start gap-3 pt-5 pb-[3rem]">
-            {/* header */}
-            <div className="w-full flex items-center justify-between mt-[4.6rem]">
+      <div className="h-screen overflow-y-auto no-scrollbar flex flex-col items-start justify-start gap-3  pb-[3rem]">
+
+            <div className="w-full h-[2rem] flex items-center mt-[5.4rem] justify-between">
+
                 <div className="flex items-center justify-center gap-2">
-                    <div className="h-[1.2rem] w-[3px] bg-[#0B2A66] rounded-full"></div>
+                    <div className="h-[1.7rem] w-[3px] bg-[#0B2A66] rounded-full"></div>
                     <div className="flex flex-col items-start justify-center">
-                        <h2 className="text-blue-900 font-bold text-[12px]">
-                            Expiring Lab Results Monitor
-                        </h2>
+                        <h2 className="text-blue-900 font-bold text-[14px]">Expiring Lab Results Monitor</h2>
+                        <h2 className="text-blue-500 font-semibold text-[9px]">Monitor expired, expiring, and valid lab results for compliance tracking</h2>
                     </div>
                 </div>
+
+                <div className="relative flex items-center justify-center gap-2">
+                    
+                    <button onClick={() => setOpenDownloadDropdown(!openDownloadDropdown)} className="px-4 py-[6px] flex items-center justify-center shadow-lg rounded-[1px] bg-[#00682F] gap-2 hover:bg-green-600"  >
+                        <img src={download} className="w-3 h-3" />
+                        <span className="text-white text-[9px] font-medium"> Download Report </span>
+                    </button>
+
+                    <div style={{ position: "absolute", left: "-99910px", top: 0 }}></div>
+
+                    {openDownloadDropdown && (
+                        <div className="absolute top-full mt-1 w-[10rem] bg-white shadow-md rounded text-[10px] z-10">
+                            
+                            <button  className="w-full text-left px-3 py-2 hover:bg-green-100" > PDF (All Patients Report) </button>
+                            <button onClick={() => { console.log("Download Excel"); setOpenDownloadDropdown(false); }} className="w-full text-left px-3 py-2 hover:bg-green-100" > PDF (Patients Only) </button>
+                            <button onClick={() => { console.log("Download CSV"); setOpenDownloadDropdown(false); }} className="w-full text-left px-3 py-2 hover:bg-green-100" > Excel (All Patients Report) </button>
+                            <button onClick={() => { console.log("Download CSV"); setOpenDownloadDropdown(false);  }} className="w-full text-left px-3 py-2 hover:bg-green-100" > Excel (Patients Only) </button>
+
+                        </div>
+                    )}
+
+                </div>
+
+            </div>
+
+            {/* notes */}
+            <div className="w-full flex items-center justify-start ">
+                <h2 className="text-[10px] text-black text-medium"><b>Note</b>: {' '}Lab results are valid for 30 days from test date. Monitor and renew expired or expiring results.</h2>
             </div>
 
             {/* cards */}
-            <div className="w-full flex items-start justify-start gap-2">
-                <div className="h-9 w-35 flex items-center justify-center shadow-md bg-blue-900 p-2 gap-3 hover:scale-105 transition-transform duration-200 ease-in-out">
+            <div className="w-full flex items-start justify-start gap-2 ">
+                <div className="h-9 w-35 flex items-center justify-center shadow-md bg-blue-900 p-2 gap-3 hover:scale-105 transition-transform duration-200 ease-in-out rounded-[1px]">
                     <img src={labPatient} className="w-4 h-4" />
                     <h2 className="font-bold text-white text-[10px]">12 Patients</h2>
                 </div>
 
-                <div className="h-9 w-35 flex items-center justify-center shadow-md bg-red-900 p-2 gap-3 hover:scale-105 transition-transform duration-200 ease-in-out">
+                <div className="h-9 w-35 flex items-center justify-center shadow-md bg-red-900 p-2 gap-3 hover:scale-105 transition-transform duration-200 ease-in-out rounded-[1px]">
                     <img src={expired} className="w-4 h-4" />
                     <h2 className="font-bold text-white text-[10px]">12 Expired</h2>
                 </div>
 
-                <div className="h-9 w-35 flex items-center justify-center shadow-md bg-[#C09200] p-2 gap-3 hover:scale-105 transition-transform duration-200 ease-in-out">
+                <div className="h-9 w-35 flex items-center justify-center shadow-md bg-[#C09200] p-2 gap-3 hover:scale-105 transition-transform duration-200 ease-in-out rounded-[1px]">
                     <img src={expiredSoon} className="w-4 h-4" />
                     <h2 className="font-bold text-white text-[10px]">12 Expired Soon</h2>
                 </div>
 
-                <div className="h-9 w-35 flex items-center justify-center shadow-md bg-green-900 p-2 gap-3 hover:scale-105 transition-transform duration-200 ease-in-out">
+                <div className="h-9 w-35 flex items-center justify-center shadow-md bg-green-900 p-2 gap-3 hover:scale-105 transition-transform duration-200 ease-in-out rounded-[1px]">
                     <img src={lab} className="w-4 h-4" />
                     <h2 className="font-bold text-white text-[10px]">12 Valid</h2>
                 </div>
                 
             </div>
 
-            {/* notes */}
-            <div className="w-full flex items-center justify-start border-b border-gray-500 py-2">
-                <h2 className="text-[10px] text-black text-medium"><b>Note</b>: {' '}Lab results are valid for 30 days from test date. Monitor and renew expired or expiring results.</h2>
-            </div>
+            
 
-            <div className="flex items-center justify-end w-full gap-2">
-                <div className="relative flex items-center justify-center w-1/3 border border-blue-900 rounded-[2px] px-2">
-                    
-                    <input value={search} onChange={(e) => { setSearch(e.target.value); setShowSuggestions(true); }} onFocus={() => setShowSuggestions(true)} type="text" placeholder="Search patient..." className="w-full text-[10px] py-1 outline-none" />
-                    {showSuggestions && search && (
-                        <div className="absolute top-full left-0 w-full bg-white shadow-md border border-gray-300 z-50 max-h-32 overflow-y-auto">
-                            {filteredSuggestions.length > 0 ? (
-                                filteredSuggestions.map((p) => (
-                                    <div
-                                        key={p.id}
-                                        onClick={() => {
-                                            setSearch(p.name);
-                                            setShowSuggestions(false);
-                                        }}
-                                        className="px-2 py-1 text-[10px] hover:bg-gray-200 cursor-pointer"
-                                    >
-                                        {p.name}
-                                    </div>
-                                ))
-                            ) : (
-                                <div className="px-2 py-1 text-[10px] text-black">
-                                    No results
-                                </div>
-                            )}
-                        </div>
-                    )}
-
+            <div className="flex items-center justify-between w-full gap-2">
+                <div className="flex items-center justify-center gap-3">
+                    <div className="flex items-start justify-start mb-3">
+                        <div className="h-[1rem] w-[3px] bg-[#0B2A66] rounded-full"></div>
+                        <span className="text-black font-bold text-[11px] ml-2">Patients with Expiring Lab Results</span>
+                    </div>
                 </div>
+                <div className="flex items-center justify-center gap-2">
+                    <div className="relative flex items-center justify-center w-[15rem]  border border-blue-900 rounded-[2px] px-2">
+                        <input value={search} onChange={(e) => { setSearch(e.target.value); setShowSuggestions(true); }} onFocus={() => setShowSuggestions(true)} type="text" placeholder="Search patient..." className="w-full text-[10px] py-1 outline-none" />
+                        {showSuggestions && search && (
+                            <div className="absolute top-full left-0 w-full bg-white shadow-md border border-gray-300 z-50 max-h-32 overflow-y-auto">
+                                {filteredSuggestions.length > 0 ? (
+                                    filteredSuggestions.map((p) => (
+                                        <div
+                                            key={p.id}
+                                            onClick={() => {
+                                                setSearch(p.name);
+                                                setShowSuggestions(false);
+                                            }}
+                                            className="px-2 py-1 text-[10px] hover:bg-gray-200 cursor-pointer"
+                                        >
+                                            {p.name}
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="px-2 py-1 text-[10px] text-black">
+                                        No results
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
-                <button className="p-2 flex items-center justify-center shadow-lg  bg-[#00682F] gap-2 hover:bg-green-600">
-                    <img src={download} className="w-3 h-3" />
-                    <span className="text-white text-[9px] font-medium">Download Lab Report</span>
-                </button>
+                    </div>
+
+                    <button className="py-[6px] px-7 flex items-center justify-center shadow-lg rounded-[1px] bg-[#0B2A66] gap-2 hover:bg-blue-600">
+                        <img src={searchIcon} className="w-3 h-3" />
+                        <span className="text-white text-[9px] font-medium">Search</span>
+                    </button>
+                </div>
             </div>
 
             {/* lab details */}
             <div className="w-[55rem] flex items-start justify-center gap-2">
-            
                 <div className="w-3/4 flex flex-col items-center justify-center gap-2">
                     <div className="grid grid-cols-2 gap-2 w-full">
 
@@ -198,7 +232,7 @@ export default function ExpiringLabs() {
                                                 <div className="flex items-center justify-between gap-2 w-full">
 
                                                     <h2 className="text-black text-[12px] font-bold whitespace-nowrap"> {p.name} </h2>
-                                                    <div className="flex items-center justify-center px-2 py-1 bg-red-700">
+                                                    <div className="flex items-center justify-center px-2 py-1 bg-red-700 rounded-[1px]">
                                                         <h2 className="text-white font-bold text-[9px]"> Expired </h2>
                                                     </div>
 
@@ -243,8 +277,8 @@ export default function ExpiringLabs() {
                                                 <div className=" text-[10px]">Main Dialysis Lab</div>
                                             </div>
 
-                                            <div className="flex items-center justify-end gap-2 mt-3 w-full border-t border-gray-500">
-                                                <div onClick={() => setOpenModalTest(true)} className="flex items-center justify-center  mt-2 px-2 py-1 cursor-pointer hover:bg-blue-700 bg-blue-900 shrink-0" >
+                                            <div className="flex items-center justify-end gap-2 mt-3 w-full border-t border-gray-500 ">
+                                                <div onClick={() => setOpenModalTest(true)} className="flex items-center justify-center rounded-[1px]  mt-2 px-2 py-1 cursor-pointer hover:bg-blue-700 bg-blue-900 shrink-0" >
                                                     <h2 className="text-white text-[9px] whitespace-nowrap"> Schedule Test </h2>
                                                 </div>
                                             </div>
@@ -309,7 +343,7 @@ export default function ExpiringLabs() {
                                         </div>
 
 
-                                        <button className="w-full py-1 bg-[#002060] hover:bg-blue-600 flex items-center justify-center shadow-md text-white text-[10px] mt-4 font-medium">Submit</button>
+                                        <button className="w-full py-1 bg-[#002060] hover:bg-blue-600 flex items-center rounded-[3px] justify-center shadow-md text-white text-[10px] mt-4 font-medium">Submit</button>
                                     </form>
                                 </div>
                             </div>
@@ -369,10 +403,10 @@ export default function ExpiringLabs() {
                 
             </div>
 
-            <div className="flex items-center justify-center bg-red-800 gap-2 p-2 shadow-md rounded-[3px] mt-2">
-                <img src={expired} alt="" className="h-5 w-5" />
-                <div className="flex items-start justify-start">
-                    <h2 className="text-white font-bold text-[9px]">Action Required: 12 {" "} <span className="font-normal">have expired lab results. Please schedule laboratory tests as soon as possible to maintain compliance</span></h2>
+            <div className="w-full flex items-center justify-center bg-red-200 border border-red-300 gap-2 p-3 shadow-md rounded-[1px] mt-2">
+                <img src={labwarning} alt="" className="h-5 w-5" />
+                <div className="flex items-start justify-start w-full">
+                    <h2 className="text-red-800 font-bold text-[10px]">Action Required: 12 {" "} <span className="font-normal">have expired lab results. Please schedule laboratory tests as soon as possible to maintain compliance</span></h2>
                 </div>
             </div>
         </div>
