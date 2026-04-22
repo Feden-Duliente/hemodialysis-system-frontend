@@ -47,16 +47,7 @@ const getIcon = (type) => {
   }
 };
 
-const data = [
-  { name: "High-flux Dialyzer", type: "dialyzer", qty: 12, unit: "pieces" },
-  { name: "Blood Tubing Set", type: "tubing", qty: 12, unit: "sets" },
-  { name: "Dialysate Solution (4L)", type: "other", qty: 48, unit: "bags" },
-  { name: "Heparin (5000 IU)", type: "medication", qty: 12, unit: "vials" },
-  { name: "Saline Solution (500ml)", type: "medication", qty: 24, unit: "bags" },
-  { name: "Needle Set", type: "other", qty: 24, unit: "sets" },
-  { name: "Gauze Pads", type: "other", qty: 120, unit: "pieces" },
-  { name: "Medical Tape", type: "other", qty: 12, unit: "rolls" },
-];
+
 
 const rawData = [
   { name: "Dialyzer", today: 18, yesterday: 14 },
