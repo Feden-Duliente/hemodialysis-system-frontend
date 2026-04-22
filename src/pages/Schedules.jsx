@@ -31,7 +31,7 @@ import {
   Line,
   CartesianGrid,
 } from "recharts";
-import wanglin from "../assets/wanglin.png"
+import wanglin from "../assets/wangLin.png"
 
 
 const getIcon = (type) => {
