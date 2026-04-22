@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 body {
-  font-family: 'Monda', sans-serif;
+  font-family: 'montserrat', sans-serif;
 }
 
 /* Hide scrollbar but keep scroll working */
@@ -14,3 +14,76 @@ body {
   scrollbar-width: none; /* Firefox */
 }
 
+/* Thin invisible-track scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px; /* smaller width */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent; /* remove background */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.3); /* scrollbar bar only */
+  border-radius: 999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #0c5148;
+}
+
+/* Firefox */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
+}
+
+[data-tooltip] {
+  position: relative;
+}
+
+[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 50%;
+  top: -28px;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  font-size: 10px;
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.group:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 50%;
+  top: -28px;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  font-size: 10px;
+  color: white;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+@media print {
+  @page {
+    margin: 0;
+    size: A4;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+  }
+}

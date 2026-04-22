@@ -1,414 +1,493 @@
-import labPatient from "../assets/lab-patient.png";
-import expired from "../assets/expired.png";
-import expiredSoon from "../assets/expired-soon.png";
-import lab from "../assets/lab.png";
-import labRed from "../assets/labRed.png";
-import labGreen from "../assets/labGreen.png";
-import labOrange from "../assets/labOrange.png";
-import wangLin from "../assets/wangLin.jpg";
-import download from "../assets/download.png";
-import close2 from "../assets/close2.png";
-import logo from "../assets/hemodialysis.png";
-import labwarning from "../assets/labwarning.png";
-import searchIcon from "../assets/search.png";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { createPortal } from "react-dom";
+import { ChevronUpIcon, CurrencyDollarIcon, MagnifyingGlassIcon    } from "@heroicons/react/24/solid";
+import {
+  Package,
+  Pill,
+  Syringe,
+  Droplets,
+  Scissors,
+  Bandage,
+  FlaskConical,
+} from "lucide-react";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  LabelList,
+  Legend,PieChart, Pie, Cell,
+  LineChart,
+  Line,
+  CartesianGrid,
+} from "recharts";
+
+
+const doctorsData = [
+  { name: "BILLIE DELA CRUZ", specialty: "Neurologist", contribution: 50, total: 100 },
+  { name: "WEI WUXIAN", specialty: "Neurologist", contribution: 71, total: 100 },
+  { name: "XIA BAO", specialty: "Neurologist", contribution: 14, total: 100 },
+  { name: "DYLAN WANG", specialty: "Cardiologist", contribution: 46, total: 100 },
+  { name: "SAN LANG", specialty: "Endocrinologist", contribution: 80, total: 100 },
+  { name: "BILLIE DELA CRUZ", specialty: "Neurologist", contribution: 50, total: 100 },
+  { name: "WEI WUXIAN", specialty: "Neurologist", contribution: 71, total: 100 },
+  { name: "XIA BAO", specialty: "Neurologist", contribution: 14, total: 100 },
+  { name: "DYLAN WANG", specialty: "Cardiologist", contribution: 46, total: 100 },
+  { name: "SAN LANG", specialty: "Endocrinologist", contribution: 80, total: 100 },
+  { name: "BILLIE DELA CRUZ", specialty: "Neurologist", contribution: 50, total: 100 },
+  { name: "WEI WUXIAN", specialty: "Neurologist", contribution: 71, total: 100 },
+  { name: "XIA BAO", specialty: "Neurologist", contribution: 14, total: 100 },
+  { name: "DYLAN WANG", specialty: "Cardiologist", contribution: 46, total: 100 },
+  { name: "SAN LANG", specialty: "Endocrinologist", contribution: 80, total: 100 },
+];
+
+const data = [
+  { name: "High-flux Dialyzer", type: "dialyzer", qty: 12, unit: "pieces" },
+  { name: "Blood Tubing Set", type: "tubing", qty: 12, unit: "sets" },
+  { name: "Dialysate Solution (4L)", type: "other", qty: 48, unit: "bags" },
+  { name: "Heparin (5000 IU)", type: "medication", qty: 12, unit: "vials" },
+  { name: "Saline Solution (500ml)", type: "medication", qty: 24, unit: "bags" },
+  { name: "Needle Set", type: "other", qty: 24, unit: "sets" },
+  { name: "Gauze Pads", type: "other", qty: 120, unit: "pieces" },
+  { name: "Medical Tape", type: "other", qty: 12, unit: "rolls" },
+];
+
+const rawData = [
+  { name: "Dialyzer", today: 18, yesterday: 14 },
+  { name: "Tubing", today: 22, yesterday: 26 },
+  { name: "Dialysate", today: 70, yesterday: 58 },
+  { name: "Heparin", today: 16, yesterday: 10 },
+  { name: "Saline", today: 38, yesterday: 30 },
+  { name: "Needle", today: 42, yesterday: 28 },
+  { name: "Gauze", today: 120, yesterday: 23 },
+  { name: "Tape", today: 20, yesterday: 16 },
+];
+
+const pieData = [
+  { name: "Pending", value: 500 },
+  { name: "In Progress", value: 300 },
+  { name: "Pending", value: 700 },
+];
+
+const PIECOLORS = [
+  "#671f19", 
+  "#901d12", 
+  "#ae1717", 
+];
+
+const COLORS = ["#0c5148", "#1b4486", "#bd7d0f", "#b80f0f"];
+
+const linedata = [
+  { time: "9AM", today: 1020, yesterday: 980 },
+  { time: "9:30AM", today: 1280, yesterday: 1120 },
+  { time: "10AM", today: 1900, yesterday: 1450 },
+  { time: "10:30AM", today: 2300, yesterday: 1750 },
+  { time: "11AM", today: 2650, yesterday: 2050 },
+  { time: "11:30AM", today: 2480, yesterday: 2200 },
+  { time: "12PM", today: 3200, yesterday: 2700 },
+  { time: "12:30PM", today: 3050, yesterday: 2550 },
+  { time: "1PM", today: 2920, yesterday: 2400 },
+  { time: "1:15PM", today: 2700, yesterday: 2250 },
+  { time: "1:30PM", today: 2550, yesterday: 2100 },
+  { time: "1:45PM", today: 2900, yesterday: 2350 },
+  { time: "2PM", today: 4200, yesterday: 3150 },
+];
+
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white/80 backdrop-blur-md border border-white/30 shadow-lg rounded-[12px] px-3 py-2 text-[11px]">
+        <p className="font-semibold text-gray-700 mb-1">{label}</p>
+        <p className="text-[#0c5148]">Today: ₱{payload[0].value}</p>
+        <p className="text-gray-500">Yesterday: ₱{payload[1].value}</p>
+      </div>
+    );
+  }
+  return null;
+};
+
 
 export default function ExpiringLabs() {
-    const [openViewDetails, setOpenViewDetails] = useState(false);
-    const [openModalTest, setOpenModalTest] = useState(false);
-    const [error, setError] = useState("");
-    const [testDate, setTestDate] = useState("");
-    const [testTime, setTestTime] = useState("");
-    const [expiryDate, setExpiryDate] = useState("");
-    const [expiryTime, setExpiryTime] = useState("");
-    const [showSuggestions, setShowSuggestions] = useState(false);
-    const [search, setSearch] = useState("");
-    const [openDownloadDropdown, setOpenDownloadDropdown] = useState(false);
-    const [patients, setPatients] = useState([
-        { id: 1, name: "Wang Lin" },
-        { id: 2, name: "Wei Wuxian" },
-        { id: 3, name: "Lan Zhan" },
-        { id: 4, name: "San Lang" }
-    ]);
+  const [openDownload, setOpenDownload] = useState(false);
+  const [openSearchPatient, setOpenSearchPatient] = useState(false);
+    
+  const [active, setActive] = useState(null);
 
-    const today = new Date().toISOString().split("T")[0];
+  const maxToday = Math.max(...rawData.map(d => d.today || 0));
 
-    // auto add +1 when selecting date
-    const handleTestDateChange = (e) => {
-        const value = e.target.value;
-        setTestDate(value);
+  const data = rawData.map(d => ({ ...d, isMax: d.today === maxToday, }));
 
-        if (value) {
-            const date = new Date(value);
-            date.setDate(date.getDate() + 1);
-            const nextDay = date.toISOString().split("T")[0];
-            setExpiryDate(nextDay);
-        }
-    };
-
-    // date and time validation
-    const handleExpiryDateChange = (e) => {
-        const value = e.target.value;
-
-        if (value <= testDate) {
-            setError("Expiry date must be after test date");
-            return;
-        }
-
-        setError("");
-        setExpiryDate(value);
-    };
-
-    const handleExpiryTimeChange = (e) => {
-        const value = e.target.value;
-
-        if (expiryDate === testDate && value <= testTime) {
-            setError("Expiry time must be after test time");
-            return;
-        }
-
-        setError("");
-        setExpiryTime(value);
-    };
-
-    // error notification seconds
-    useEffect(() => {
-        if (error) {
-            const timer = setTimeout(() => {
-                setError("");
-            }, 3000);
-
-            return () => clearTimeout(timer);
-        }
-    }, [error]);
-
-    // filter suggestion (autocomplte)
-    const filteredSuggestions = patients.filter(p =>
-        p.name.toLowerCase().includes(search.toLowerCase())
-    );
-
+  const ActiveLabel = ({ x, y, width, value, payload }) => {
+    if (!payload?.isMax) return null;
 
     return (
-      <div className="h-screen overflow-y-auto no-scrollbar flex flex-col items-start justify-start gap-3  pb-[3rem]">
+      <g>
+        <rect x={x + width / 2 - 65} y={y - 35} width={130} height={24} rx={8} fill="#6366F1" />
+        <text x={x + width / 2} y={y - 18} fill="#fff" textAnchor="middle" fontSize={12} fontWeight={500} > {value} – {payload?.name} – Today </text>
+        <polygon points={` ${x + width / 2 - 6},${y - 11} ${x + width / 2 + 6},${y - 11} ${x + width / 2},${y - 2} `} fill="#6366F1" />
+      </g>
+    );
+  };
 
-            <div className="w-full h-[2rem] flex items-center mt-[5.4rem] justify-between">
+    return (
+        <div className="w-full min-h-screen flex flex-col items-center justify-center  p-8 no-scrollbar mr-5">
 
-                <div className="flex items-center justify-center gap-2">
-                    <div className="h-[1.7rem] w-[3px] bg-[#0B2A66] rounded-full"></div>
-                    <div className="flex flex-col items-start justify-center">
-                        <h2 className="text-blue-900 font-bold text-[14px]">Expiring Lab Results Monitor</h2>
-                        <h2 className="text-blue-500 font-semibold text-[9px]">Monitor expired, expiring, and valid lab results for compliance tracking</h2>
-                    </div>
-                </div>
-
-                <div className="relative flex items-center justify-center gap-2">
-                    
-                    <button onClick={() => setOpenDownloadDropdown(!openDownloadDropdown)} className="px-4 py-[6px] flex items-center justify-center shadow-lg rounded-[1px] bg-[#00682F] gap-2 hover:bg-green-600"  >
-                        <img src={download} className="w-3 h-3" />
-                        <span className="text-white text-[9px] font-medium"> Download Report </span>
-                    </button>
-
-                    <div style={{ position: "absolute", left: "-99910px", top: 0 }}></div>
-
-                    {openDownloadDropdown && (
-                        <div className="absolute top-full mt-1 w-[10rem] bg-white shadow-md rounded text-[10px] z-10">
-                            
-                            <button  className="w-full text-left px-3 py-2 hover:bg-green-100" > PDF (All Patients Report) </button>
-                            <button onClick={() => { console.log("Download Excel"); setOpenDownloadDropdown(false); }} className="w-full text-left px-3 py-2 hover:bg-green-100" > PDF (Patients Only) </button>
-                            <button onClick={() => { console.log("Download CSV"); setOpenDownloadDropdown(false); }} className="w-full text-left px-3 py-2 hover:bg-green-100" > Excel (All Patients Report) </button>
-                            <button onClick={() => { console.log("Download CSV"); setOpenDownloadDropdown(false);  }} className="w-full text-left px-3 py-2 hover:bg-green-100" > Excel (Patients Only) </button>
-
-                        </div>
-                    )}
-
-                </div>
-
+            {/* head */}
+            <div className="w-full flex items-center justify-between mt-5 ">
+              <div className="flex items-start justify-center gap-3">
+                  <div className="flex items-center justify-center gap-3 ">
+                      <div className="w-[5px] h-8 bg-green-900 rounded-full"></div>
+                      <div className="flex flex-col items-start justify-center">
+                          <h2 className="text-[11px] font-semibold tracking-[0.1em]">EXPIRING LAB RESULT</h2>
+                          <h2 className="text-[10px] text-[#064e3b] font-semibold tracking-[0.1em]">Lab results are valid for 30 days from test date. Monitor and renew expired or expiring results.</h2>
+                      </div>
+                  </div>
+              </div>
             </div>
 
-            {/* notes */}
-            <div className="w-full flex items-center justify-start ">
-                <h2 className="text-[10px] text-black text-medium"><b>Note</b>: {' '}Lab results are valid for 30 days from test date. Monitor and renew expired or expiring results.</h2>
-            </div>
+            {/* start: main contents */}
+            <div className="w-full flex-1 min-h-0 flex items-stretch justify-between gap-5 mt-2">
+                <div className="w-[280px] shrink-0 flex flex-col items-center justify-center gap-4 mb-2">
 
-            {/* cards */}
-            <div className="w-full flex items-start justify-start gap-2 ">
-                <div className="h-9 w-35 flex items-center justify-center shadow-md bg-blue-900 p-2 gap-3 hover:scale-105 transition-transform duration-200 ease-in-out rounded-[1px]">
-                    <img src={labPatient} className="w-4 h-4" />
-                    <h2 className="font-bold text-white text-[10px]">12 Patients</h2>
-                </div>
-
-                <div className="h-9 w-35 flex items-center justify-center shadow-md bg-red-900 p-2 gap-3 hover:scale-105 transition-transform duration-200 ease-in-out rounded-[1px]">
-                    <img src={expired} className="w-4 h-4" />
-                    <h2 className="font-bold text-white text-[10px]">12 Expired</h2>
-                </div>
-
-                <div className="h-9 w-35 flex items-center justify-center shadow-md bg-[#C09200] p-2 gap-3 hover:scale-105 transition-transform duration-200 ease-in-out rounded-[1px]">
-                    <img src={expiredSoon} className="w-4 h-4" />
-                    <h2 className="font-bold text-white text-[10px]">12 Expired Soon</h2>
-                </div>
-
-                <div className="h-9 w-35 flex items-center justify-center shadow-md bg-green-900 p-2 gap-3 hover:scale-105 transition-transform duration-200 ease-in-out rounded-[1px]">
-                    <img src={lab} className="w-4 h-4" />
-                    <h2 className="font-bold text-white text-[10px]">12 Valid</h2>
-                </div>
-                
-            </div>
-
-            
-
-            <div className="flex items-center justify-between w-full gap-2">
-                <div className="flex items-center justify-center gap-3">
-                    <div className="flex items-start justify-start mb-3">
-                        <div className="h-[1rem] w-[3px] bg-[#0B2A66] rounded-full"></div>
-                        <span className="text-black font-bold text-[11px] ml-2">Patients with Expiring Lab Results</span>
-                    </div>
-                </div>
-                <div className="flex items-center justify-center gap-2">
-                    <div className="relative flex items-center justify-center w-[15rem]  border border-blue-900 rounded-[2px] px-2">
-                        <input value={search} onChange={(e) => { setSearch(e.target.value); setShowSuggestions(true); }} onFocus={() => setShowSuggestions(true)} type="text" placeholder="Search patient..." className="w-full text-[10px] py-1 outline-none" />
-                        {showSuggestions && search && (
-                            <div className="absolute top-full left-0 w-full bg-white shadow-md border border-gray-300 z-50 max-h-32 overflow-y-auto">
-                                {filteredSuggestions.length > 0 ? (
-                                    filteredSuggestions.map((p) => (
-                                        <div
-                                            key={p.id}
-                                            onClick={() => {
-                                                setSearch(p.name);
-                                                setShowSuggestions(false);
-                                            }}
-                                            className="px-2 py-1 text-[10px] hover:bg-gray-200 cursor-pointer"
-                                        >
-                                            {p.name}
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="px-2 py-1 text-[10px] text-black">
-                                        No results
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                    </div>
-
-                    <button className="py-[6px] px-7 flex items-center justify-center shadow-lg rounded-[1px] bg-[#0B2A66] gap-2 hover:bg-blue-600">
-                        <img src={searchIcon} className="w-3 h-3" />
-                        <span className="text-white text-[9px] font-medium">Search</span>
-                    </button>
-                </div>
-            </div>
-
-            {/* lab details */}
-            <div className="w-[55rem] flex items-start justify-center gap-2">
-                <div className="w-3/4 flex flex-col items-center justify-center gap-2">
-                    <div className="grid grid-cols-2 gap-2 w-full">
+                    {/* cards */}
+                    <div className="w-full flex flex-col items-center justify-between h-[210px] gap-4">
 
                         {/* card 1 */}
-                        {[...patients]
-                            .sort((a, b) => {
-
-                                if (!search) return 0;
-
-                                const aMatch = a.name.toLowerCase().includes(search.toLowerCase());
-                                const bMatch = b.name.toLowerCase().includes(search.toLowerCase());
-
-                                return bMatch - aMatch;
-
-                            })
-                            .map((p) => (
-                                <div key={p.id} className="bg-white shadow-md p-4 flex items-start gap-3 w-full min-w-0 hover:bg-gray-200">
-
-                                    <div className="flex items-start justify-start shrink-0">
-                                        <div className="h-12 w-12 flex items-center justify-center rounded-full border border-black">
-                                            <img src={wangLin} className="h-full w-full rounded-full" alt="" />
-                                        </div>
-                                    </div>
-
-                                    <div className="flex flex-col w-full">
-
-                                        <div className="flex flex-col items-start justify-start gap-2 w-full">
-
-                                            <div className="flex items-center justify-between w-full">
-                                                <div className="flex items-center justify-between gap-2 w-full">
-
-                                                    <h2 className="text-black text-[12px] font-bold whitespace-nowrap"> {p.name} </h2>
-                                                    <div className="flex items-center justify-center px-2 py-1 bg-red-700 rounded-[1px]">
-                                                        <h2 className="text-white font-bold text-[9px]"> Expired </h2>
-                                                    </div>
-
-                                                </div>
-                                            </div>
-
-                                            <div className="flex items-start justify-start bg-red-200 w-full py-1 px-2 mt-2 ">
-                                                <h2 className="text-red-900 font-bold text-[9px]"> Expired 170 days ago. </h2>
-                                            </div>
-
-                                            <div className="grid grid-cols-2 gap-2 mt-2 w-full">
-                                                <div className=" text-[10px]">Client Name</div>
-                                                <div className=" text-[10px] font-bold">{p.name}</div>
-                                            </div>
-
-                                            <div className="grid grid-cols-2 gap-2 w-full">
-                                                <div className="text-[10px]">Test Date</div>
-                                                <div className=" text-[10px]">January 01, 2026 <br />8:00 PM</div>
-                                            </div>
-
-                                            <div className="grid grid-cols-2 gap-2 w-full">
-                                                <div className="text-[10px]">Expiry Date</div>
-                                                <div className=" text-[10px]">July 21, 2026 <br /> 5:30 PM</div>
-                                            </div>
-
-                                            <div className="grid grid-cols-2 gap-2 w-full">
-                                                <div className="text-[10px]">Lab Tests</div>
-                                                <div className=" text-[10px] flex flex-col">
-                                                    <span>HIV</span>
-                                                    <span>Hepatitis</span>
-                                                    <span>CBC</span>
-                                                </div>
-                                            </div>
-
-                                            <div className="grid grid-cols-2 gap-2 w-full">
-                                                <div className=" text-[10px]">Assigned Doctor</div>
-                                                <div className=" text-[10px]">Dr. Lan Zhan</div>
-                                            </div>
-
-                                            <div className="grid grid-cols-2 gap-2 w-full">
-                                                <div className=" text-[10px]">Laboratory</div>
-                                                <div className=" text-[10px]">Main Dialysis Lab</div>
-                                            </div>
-
-                                            <div className="flex items-center justify-end gap-2 mt-3 w-full border-t border-gray-500 ">
-                                                <div onClick={() => setOpenModalTest(true)} className="flex items-center justify-center rounded-[1px]  mt-2 px-2 py-1 cursor-pointer hover:bg-blue-700 bg-blue-900 shrink-0" >
-                                                    <h2 className="text-white text-[9px] whitespace-nowrap"> Schedule Test </h2>
-                                                </div>
-                                            </div>
-
-                                        </div>
-
-                                    </div>
-
+                        <div className="w-full h-[110px] flex flex-col items-center justify-center px-4 py-3 gap-2 rounded-[14px] bg-[#770e0e] backdrop-blur-2xl border border-[#1b4486]/15 shadow-[0_10px_35px_rgba(0,0,0,0.12)] hover:bg-red-900/40 hover:border-red-900/40 transition-all duration-300 text-white">
+                            <div className="w-full flex items-center justify-between">
+                                <div className="flex items-center justify-center p-1 rounded-xl shadow-lg bg-white/10 backdrop-blur-md border border-white/10">
+                                    <CurrencyDollarIcon className="h-7 w-7 text-white" />
                                 </div>
-                        ))}
-
-                        {/* schedule test */}
-                        {openModalTest && (
-                            <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-                                <div className="bg-white w-[18rem] px-4 py-4 shadow-lg relative flex flex-col items-center justify-center">
-                                    <div className="w-full flex items-center justify-between">
-                                        <div className="flex items-center justify-center gap-1">
-                                            <img src={logo} className="h-9 w-9" />
-                                            <h2 className="text-black font-bold text-[12px]">Schedule Test</h2>
-                                        </div>
-                                        <div onClick={() => setOpenModalTest(false)} className="flex items-center justify-center h-5 w-5 hover:bg-gray-300">
-                                            <img src={close2} className="h-4 w-4" />
-                                        </div>
-                                    </div>
-
-
-                                    {/* error notficaion */}
-                                    {error && <div className="w-full flex items-center justify-start px-2 ">
-                                                <div className="w-full flex items-center justify-start bg-red-900 gap-2 p-2 mt-2 shadow-md rounded-[2px]">
-                                                    <img src={expired} alt="" className="w-4 h-4" />
-                                                    <h2 className="text-white font-medium text-[9px]">{error}</h2>
-                                                </div>
-                                            </div>
-                                    }   
-
-                                    <form action="" className="w-full px-2 py-2 mt-1">
-                                
-                                        <div className="flex items-center justify-between w-full gap-2">
-                                            <div className="flex flex-col items-start justify-center w-1/2">
-                                                <label htmlFor="fullName" className="text-[10px]">Test Date</label>
-                                                <input type="date" min={today} value={testDate} onChange={handleTestDateChange} className="w-full mt-1 border border-gray-400 p-1 rounded-[2px] text-[10px] focus:outline-none focus:border-[#0B2A66]" />
-                                            </div>
-
-                                            <div className="flex flex-col items-start justify-center w-1/2">
-                                                <label htmlFor="fullName" className="text-[10px]">Test Time</label>
-                                                <input type="time" value={testTime} onChange={(e) => setTestTime(e.target.value)} className="w-full mt-1 border border-gray-400 p-1 rounded-[2px] text-[10px] focus:outline-none focus:border-[#0B2A66]" />
-                                            </div>
-
-                                        </div>
-
-                                        <div className="flex items-center justify-between w-full mt-3 gap-2">
-                                            <div className="flex flex-col items-start justify-center w-1/2">
-                                                <label htmlFor="fullName" className="text-[10px]">Expiry Date</label>
-                                                <input type="date" min={testDate || today} value={expiryDate} onChange={handleExpiryDateChange} className="w-full mt-1 border border-gray-400 p-1 rounded-[2px] text-[10px] focus:outline-none focus:border-[#0B2A66]" />
-                                            </div>
-
-                                            <div className="flex flex-col items-start justify-center w-1/2">
-                                                <label htmlFor="fullName" className="text-[10px]">Expiry Time</label>
-                                                <input type="time" value={expiryTime} onChange={(e) => setExpiryTime(e.target.value)} className="w-full mt-1 border border-gray-400 p-1 rounded-[2px] text-[10px] focus:outline-none focus:border-[#0B2A66]" />
-                                            </div>
-
-                                        </div>
-
-
-                                        <button className="w-full py-1 bg-[#002060] hover:bg-blue-600 flex items-center rounded-[3px] justify-center shadow-md text-white text-[10px] mt-4 font-medium">Submit</button>
-                                    </form>
+                                <div className="flex items-center justify-center gap-2">
+                                    <h2 className="text-[20px] text-white whitespace-nowrap font-semibold tracking-[0.1em]">12</h2>
+                                    <h2 className="text-[10px] text-white whitespace-nowrap font-medium tracking-[0.1em]">EXPIRED LAB RESULTS</h2>
                                 </div>
+                            
                             </div>
-                        )}
-                        
-                        
-                    </div>
-                </div>
-
-                <div className="bg-white w-1/4 shadow-md px-4 py-3 flex flex-col items-start justify-start gap-1">
-                    <div className="w-full flex items-start justify-start border-b border-gray-300">
-                        <h2 className="text-black font-bold text-[10px] pb-1">Summary</h2>
-                    </div>
-                    <div className="flex items-start justify-center gap-2 mt-2">
-                        <img src={labRed} className="w-4 h-4" />
-                        <h2 className="text-red-900 text-[10px] font-semibold">Expired: {" "} <span className="font-normal">{" "}12</span></h2>
-                    </div>
-
-                    <div className="flex items-start justify-center gap-2">
-                        <img src={labOrange} className="w-4 h-4" />
-                        <h2 className="text-red-900 text-[10px] font-semibold">Expired Soon: {" "} <span className="font-normal">{" "}4</span></h2>
-                    </div>
-
-                    <div className="w-full flex items-start justify-start gap-2">
-                        <img src={labGreen} className="w-4 h-4" />
-                        <h2 className="text-green-900 text-[10px] font-semibold">Valid: {" "} <span className="font-normal">{" "}0</span></h2>
-                    </div>
-
-                    <div className="w-full flex items-start justify-start border-b border-gray-300 mt-3">
-                        <h2 className="text-black font-bold text-[10px] pb-1">Priority Queue</h2>
-                    </div>
-
-                    <div className="w-full flex flex-col items-center justify-start">
-                        <div className="w-full flex items-center justify-start gap-2">
-                            <div className="h-1 w-1 bg-red-900 rounded-full"></div>
-                            <h2 className="text-black text-[10px] font-semibold">Wei Wuxian</h2>
+                            <div className="w-full flex flex-col items-start justify-center">
+                                <h2 className="text-[8px] text-white/80  font-medium tracking-[0.1em] text-justify">12 patients have expired lab results. Please schedule laboratory tests as soon as possible to maintain compliance.</h2>
+                            </div>
                         </div>
 
-                        <div className="w-full flex items-center justify-start gap-2">
-                            <div className="h-1 w-1 bg-green-900 rounded-full"></div>
-                            <h2 className="text-black text-[10px] font-semibold">San Lang</h2>
+                        <div className="grid grid-cols-2 items-center justify-between h-[240px] gap-4">
+                            {/* card 2 */}
+                            <div className="w-full h-[90px] flex flex-col items-center justify-between px-5 py-3 gap-2 rounded-[14px] bg-[#1b4486] backdrop-blur-2xl border border-[#1b4486]/15 shadow-[0_10px_35px_rgba(0,0,0,0.12)] hover:bg-blue-900/40 hover:border-blue-900/40 transition-all duration-300 text-white">
+                                <div className="w-full flex items-center justify-between">
+                                    <div className="flex items-center justify-center p-1 rounded-xl shadow-lg bg-white/10 backdrop-blur-md border border-white/10">
+                                        <CurrencyDollarIcon className="h-7 w-7 text-white" />
+                                    </div>
+                                    <div className="flex items-center justify-center gap-2">
+                                        <h2 className="text-[20px] text-white whitespace-nowrap font-semibold tracking-[0.1em]">12</h2>
+                                        
+                                    </div>
+                                
+                                </div>
+                                <h2 className="text-[10px] text-white whitespace-nowrap font-medium tracking-[0.1em]">EXPIRED SOON</h2>
+                            </div>
+
+                            {/* card 3 */}
+                            <div className="w-full h-[90px] flex flex-col items-center justify-between px-5 py-3 gap-2 rounded-[14px] bg-[#0c5148] backdrop-blur-2xl border border-[#1b4486]/15 shadow-[0_10px_35px_rgba(0,0,0,0.12)] hover:bg-green-900/40 hover:border-green-900/40 transition-all duration-300 text-white">
+                                <div className="w-full flex items-center justify-between">
+                                    <div className="flex items-center justify-center p-1 rounded-xl shadow-lg bg-white/10 backdrop-blur-md border border-white/10">
+                                        <CurrencyDollarIcon className="h-7 w-7 text-white" />
+                                    </div>
+                                    <div className="flex items-center justify-center gap-2">
+                                        <h2 className="text-[20px] text-white whitespace-nowrap font-semibold tracking-[0.1em]">0</h2>
+                                        
+                                    </div>
+                                
+                                </div>
+                                <h2 className="text-[10px] text-white whitespace-nowrap font-medium tracking-[0.1em]">VALID RESULTS</h2>
+                            </div>
                         </div>
 
-                        <div className="w-full flex items-center justify-start gap-2">
-                            <div className="h-1 w-1 bg-red-900 rounded-full"></div>
-                            <h2 className="text-black text-[10px] font-semibold">Lan Zhan</h2>
-                        </div>
-
-                        <div className="w-full flex items-center justify-start gap-2">
-                            <div className="h-1 w-1 bg-green-900 rounded-full"></div>
-                            <h2 className="text-black text-[10px] font-semibold">Wang Lin</h2>
-                        </div>
                     </div>
-
                     
-                </div>
-                
-            </div>
 
-            <div className="w-full flex items-center justify-center bg-red-200 border border-red-300 gap-2 p-3 shadow-md rounded-[1px] mt-2">
-                <img src={labwarning} alt="" className="h-5 w-5" />
-                <div className="flex items-start justify-start w-full">
-                    <h2 className="text-red-800 font-bold text-[10px]">Action Required: 12 {" "} <span className="font-normal">have expired lab results. Please schedule laboratory tests as soon as possible to maintain compliance</span></h2>
+                    {/* pie chart */}
+                    <div className="w-full flex flex-col items-start justify-center h-[280px] gap-2 rounded-[20px] bg-white/20 backdrop-blur-md border border-white/40 shadow-lg p-4">
+                        <div className="flex items-center justify-center py-1 px-3 gap-2 rounded-full backdrop-blur-xl border border-blue-900/20 shadow-xl bg-blue-900/40">
+                            <div className="w-1 h-4 rounded-full bg-[#1b4486]"></div>
+                            <h2 className="text-[9px] font-semibold text-[#1b4486] tracking-[0.1em]"> TOTAL SALES </h2>
+                        </div>
+
+                        <div className="w-full flex items-center justify-center">
+                            <ResponsiveContainer width="100%" height={200}>
+                                <PieChart>
+                                    <Pie data={pieData} dataKey="value" nameKey="name" innerRadius={25} outerRadius={68} paddingAngle={3} cornerRadius={6} cx="50%" cy="45%">
+                                        {pieData.map((entry, index) => (
+                                            <Cell key={index} fill={PIECOLORS[index % PIECOLORS.length]} />
+                                        ))}
+                                    </Pie>
+
+                                    <Tooltip
+                                        formatter={(value, name) => [`₱${value.toLocaleString()}`, name]}
+                                        contentStyle={{
+                                            background: "rgba(255, 255, 255, 0.25)",
+                                            backdropFilter: "blur(14px)",
+                                            WebkitBackdropFilter: "blur(14px)",
+                                            borderRadius: "12px",
+                                            border: "1px solid rgba(255, 255, 255, 0.35)",
+                                            fontSize: "12px",
+                                            boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+                                            color: "#000",
+                                        }}
+                                        itemStyle={{ color: "#000" }}
+                                        labelStyle={{ color: "#000", fontWeight: 500 }}
+                                        cursor={{ fill: "rgba(59,130,246,0.08)" }}
+                                    />
+
+                                    <Legend
+                                        layout="horizontal"
+                                        verticalAlign="bottom"
+                                        align="center"
+                                        iconType="circle"
+                                        wrapperStyle={{
+                                            fontSize: "10px",
+                                            paddingTop: "10px",
+                                            color: "#000",
+                                        }}
+                                        formatter={(value) => <span style={{ color: "#000" }}>{value}</span>}
+                                    />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
                 </div>
+
+                <div className="flex-1 min-w-0 h-[505px] mt-5 flex flex-col items-start justify-start rounded-[25px] bg-white/10 backdrop-blur-xl border border-white/25 shadow-lg px-5 py-4 gap-2">
+                    <div className="w-full flex items-center justify-between">
+                        <div className="flex items-center justify-center py-1 px-4 gap-7 rounded-full backdrop-blur-xl border border-green-900/20 shadow-xl bg-green-900/40">
+                        
+                        <div className="flex items-cneter justify-center gap-3">
+                            <div className="w-1 h-4 rounded-full bg-[#0c5148]"></div>
+                            <h2 className="text-[9px] font-semibold text-[#0c5148] tracking-[0.1em]"> CONSUMPTION SUPPLY SETS </h2>
+                        </div>
+                        
+                    </div>
+
+                    <div className="flex items-center gap-2"> 
+                        <div onClick={() => setOpenSearchPatient(true)} className="flex items-center justify-center py-1 px-4 rounded-full backdrop-blur-xl border border-[#1b4486]/20 shadow-xl bg-[#1b4486]/40 hover:bg-white/10 hover:border-white/10 cursor-pointer" >
+                            <h2 className="text-[9px] font-semibold text-[#1b4486] tracking-[0.1em]"> SEARCH </h2>
+                            <MagnifyingGlassIcon className="w-3 h-3 ml-2 text-[#1b4486]" />
+                        </div>
+
+                        {openSearchPatient && (
+                            <input
+                                autoFocus
+                                type="text"
+                                placeholder="Patient name..."
+                                className="text-[10px] font-medium rounded-full border border-[#1b4486]/20 shadow-xl px-3 py-1 outline-none transition-all duration-300 ease-in-out w-48"
+                            />
+                        )}
+
+                    </div> 
+                </div>
+                    
+
+                <div className="w-full h-full flex flex-col flex-1 min-h-0"> 
+                    <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar mt-1"> 
+                        <div className="rounded-[6px] overflow-hidden "> 
+                            <table className="w-full border-collapse">
+                                <thead className="shadow-xl">
+                                    <tr>
+                                        <th className="bg-[#0c5148] text-[10px] font-medium text-white text-left px-4 py-2 rounded-l-[6px]">
+                                            ID
+                                        </th>
+
+                                        <th className="bg-[#0c5148] text-[10px] font-medium text-white text-left px-4 py-2">
+                                            PATIENT NAME
+                                        </th>
+
+                                        <th className="bg-[#0c5148] text-[10px] font-medium text-white text-left px-4 py-2">
+                                            STATUS
+                                        </th>
+
+                                        <th className="bg-[#0c5148] text-[10px] font-medium text-white text-left px-4 py-2">
+                                            DUE
+                                        </th>
+
+                                        <th className="bg-[#0c5148] text-[10px] font-medium text-white text-left px-4 py-2 rounded-r-[6px]">
+                                            LAB TEST
+                                        </th>
+                                    </tr>
+                                </thead>
+
+                                <tbody className="">
+                                    <tr className="hover:bg-red-900/10">
+                                        <td className="px-4 py-2 text-[10px] font-medium">03</td>
+                                        <td className="px-4 py-2 text-[10px] font-semibold">HARRY POTTER</td>
+                                        <td className=" text-[9px] font-medium">
+                                            <div className="w-[70px] flex items-center justify-center py-1 bg-red-900/30 rounded-fulltext-green-900 font-semibold bg-green-900/40 !text-[9px] backdrop-blur-md border border-white/20 shadow-lg py-1 px-3 rounded-full">
+                                                <h2 className="font-medium text-red-900">EXPIRED</h2>
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-2 text-[10px] font-medium">APRIL 19, 2026</td>
+                                        <td className="flex flex-col px-4 py-2 text-[9px] font-medium">
+                                            <span>CBC</span>
+                                            <span>Potassium</span>
+                                            <span>Calcium</span>
+                                        </td>
+                                    </tr>
+
+                                    <tr className="hover:bg-red-900/10">
+                                        <td className="px-4 py-2 text-[10px] font-medium">04</td>
+                                        <td className="px-4 py-2 text-[10px] font-semibold">JOHN DOE</td>
+                                        <td className=" text-[9px] font-medium">
+                                            <div className="w-[100px] flex items-center justify-center py-1 bg-[#ffbe01]/30 rounded-full text-[#ffbe01] font-semibold  !text-[9px] backdrop-blur-md border border-white/20 shadow-lg py-1 px-3 rounded-full">
+                                                <h2 className="font-medium text-red-900">EXPIRED SOON</h2>
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-2 text-[10px] font-medium">APRIL 19, 2026</td>
+                                        <td className="flex flex-col px-4 py-2 text-[9px] font-medium">
+                                            <span>CBC</span>
+                                            <span>Potassium</span>
+                                            <span>Calcium</span>
+                                        </td>
+                                    </tr>
+
+                                    <tr className="hover:bg-red-900/10">
+                                        <td className="px-4 py-2 text-[10px] font-medium">04</td>
+                                        <td className="px-4 py-2 text-[10px] font-semibold">JOHN DOE</td>
+                                        <td className=" text-[9px] font-medium">
+                                            <div className="w-[100px] flex items-center justify-center py-1 bg-[#ffbe01]/30 rounded-full text-[#ffbe01] font-semibold  !text-[9px] backdrop-blur-md border border-white/20 shadow-lg py-1 px-3 rounded-full">
+                                                <h2 className="font-medium text-red-900">EXPIRED SOON</h2>
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-2 text-[10px] font-medium">APRIL 19, 2026</td>
+                                        <td className="flex flex-col px-4 py-2 text-[9px] font-medium">
+                                            <span>CBC</span>
+                                            <span>Potassium</span>
+                                            <span>Calcium</span>
+                                        </td>
+                                    </tr>
+
+                                    <tr className="hover:bg-red-900/10">
+                                        <td className="px-4 py-2 text-[10px] font-medium">04</td>
+                                        <td className="px-4 py-2 text-[10px] font-semibold">JOHN DOE</td>
+                                        <td className=" text-[9px] font-medium">
+                                            <div className="w-[100px] flex items-center justify-center py-1 bg-[#ffbe01]/30 rounded-full text-[#ffbe01] font-semibold  !text-[9px] backdrop-blur-md border border-white/20 shadow-lg py-1 px-3 rounded-full">
+                                                <h2 className="font-medium text-red-900">EXPIRED SOON</h2>
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-2 text-[10px] font-medium">APRIL 19, 2026</td>
+                                        <td className="flex flex-col px-4 py-2 text-[9px] font-medium">
+                                            <span>CBC</span>
+                                            <span>Potassium</span>
+                                            <span>Calcium</span>
+                                        </td>
+                                    </tr>
+
+                                    <tr className="hover:bg-red-900/10">
+                                        <td className="px-4 py-2 text-[10px] font-medium">04</td>
+                                        <td className="px-4 py-2 text-[10px] font-semibold">JOHN DOE</td>
+                                        <td className=" text-[9px] font-medium">
+                                            <div className="w-[100px] flex items-center justify-center py-1 bg-[#ffbe01]/30 rounded-full text-[#ffbe01] font-semibold  !text-[9px] backdrop-blur-md border border-white/20 shadow-lg py-1 px-3 rounded-full">
+                                                <h2 className="font-medium text-red-900">EXPIRED SOON</h2>
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-2 text-[10px] font-medium">APRIL 19, 2026</td>
+                                        <td className="flex flex-col px-4 py-2 text-[9px] font-medium">
+                                            <span>CBC</span>
+                                            <span>Potassium</span>
+                                            <span>Calcium</span>
+                                        </td>
+                                    </tr>
+
+                                    <tr className="hover:bg-red-900/10">
+                                        <td className="px-4 py-2 text-[10px] font-medium">04</td>
+                                        <td className="px-4 py-2 text-[10px] font-semibold">JOHN DOE</td>
+                                        <td className=" text-[9px] font-medium">
+                                            <div className="w-[100px] flex items-center justify-center py-1 bg-[#ffbe01]/30 rounded-full text-[#ffbe01] font-semibold  !text-[9px] backdrop-blur-md border border-white/20 shadow-lg py-1 px-3 rounded-full">
+                                                <h2 className="font-medium text-red-900">EXPIRED SOON</h2>
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-2 text-[10px] font-medium">APRIL 19, 2026</td>
+                                        <td className="flex flex-col px-4 py-2 text-[9px] font-medium">
+                                            <span>CBC</span>
+                                            <span>Potassium</span>
+                                            <span>Calcium</span>
+                                        </td>
+                                    </tr>
+
+                                    <tr className="hover:bg-red-900/10">
+                                        <td className="px-4 py-2 text-[10px] font-medium">04</td>
+                                        <td className="px-4 py-2 text-[10px] font-semibold">JOHN DOE</td>
+                                        <td className=" text-[9px] font-medium">
+                                            <div className="w-[100px] flex items-center justify-center py-1 bg-[#ffbe01]/30 rounded-full text-[#ffbe01] font-semibold  !text-[9px] backdrop-blur-md border border-white/20 shadow-lg py-1 px-3 rounded-full">
+                                                <h2 className="font-medium text-red-900">EXPIRED SOON</h2>
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-2 text-[10px] font-medium">APRIL 19, 2026</td>
+                                        <td className="flex flex-col px-4 py-2 text-[9px] font-medium">
+                                            <span>CBC</span>
+                                            <span>Potassium</span>
+                                            <span>Calcium</span>
+                                        </td>
+                                    </tr>
+
+                                    <tr className="hover:bg-red-900/10">
+                                        <td className="px-4 py-2 text-[10px] font-medium">04</td>
+                                        <td className="px-4 py-2 text-[10px] font-semibold">JOHN DOE</td>
+                                        <td className=" text-[9px] font-medium">
+                                            <div className="w-[100px] flex items-center justify-center py-1 bg-[#ffbe01]/30 rounded-full text-[#ffbe01] font-semibold  !text-[9px] backdrop-blur-md border border-white/20 shadow-lg py-1 px-3 rounded-full">
+                                                <h2 className="font-medium text-red-900">EXPIRED SOON</h2>
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-2 text-[10px] font-medium">APRIL 19, 2026</td>
+                                        <td className="flex flex-col px-4 py-2 text-[9px] font-medium">
+                                            <span>CBC</span>
+                                            <span>Potassium</span>
+                                            <span>Calcium</span>
+                                        </td>
+                                    </tr>
+
+                                    <tr className="hover:bg-red-900/10">
+                                        <td className="px-4 py-2 text-[10px] font-medium">04</td>
+                                        <td className="px-4 py-2 text-[10px] font-semibold">JOHN DOE</td>
+                                        <td className=" text-[9px] font-medium">
+                                            <div className="w-[100px] flex items-center justify-center py-1 bg-[#ffbe01]/30 rounded-full text-[#ffbe01] font-semibold  !text-[9px] backdrop-blur-md border border-white/20 shadow-lg py-1 px-3 rounded-full">
+                                                <h2 className="font-medium text-red-900">EXPIRED SOON</h2>
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-2 text-[10px] font-medium">APRIL 19, 2026</td>
+                                        <td className="flex flex-col px-4 py-2 text-[9px] font-medium">
+                                            <span>CBC</span>
+                                            <span>Potassium</span>
+                                            <span>Calcium</span>
+                                        </td>
+                                    </tr>
+
+                                    <tr className="hover:bg-red-900/10">
+                                        <td className="px-4 py-2 text-[10px] font-medium">04</td>
+                                        <td className="px-4 py-2 text-[10px] font-semibold">JOHN DOE</td>
+                                        <td className=" text-[9px] font-medium">
+                                            <div className="w-[100px] flex items-center justify-center py-1 bg-[#ffbe01]/30 rounded-full text-[#ffbe01] font-semibold  !text-[9px] backdrop-blur-md border border-white/20 shadow-lg py-1 px-3 rounded-full">
+                                                <h2 className="font-medium text-red-900">EXPIRED SOON</h2>
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-2 text-[10px] font-medium">APRIL 19, 2026</td>
+                                        <td className="flex flex-col px-4 py-2 text-[9px] font-medium">
+                                            <span>CBC</span>
+                                            <span>Potassium</span>
+                                            <span>Calcium</span>
+                                        </td>
+                                    </tr>
+
+                                </tbody>
+                            </table> 
+                        </div>
+                    </div>
+                </div>
+                </div>
+
             </div>
+                
+            {/* end:main contents */}
         </div>
     )
 }

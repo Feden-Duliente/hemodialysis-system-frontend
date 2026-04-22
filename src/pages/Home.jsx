@@ -1,1126 +1,533 @@
-import { useState, useEffect, useRef } from "react";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
-import ReportLayout from "./philHealthReport";
+import { useState } from "react";
+import { createPortal } from "react-dom";
+import { ChevronUpIcon, CurrencyDollarIcon, XMarkIcon    } from "@heroicons/react/24/solid";
+import {
+  Package,
+  Pill,
+  Syringe,
+  Droplets,
+  Scissors,
+  Bandage,
+  FlaskConical,
+} from "lucide-react";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  LabelList,
+  Legend,PieChart, Pie, Cell,
+  LineChart,
+  Line,
+  CartesianGrid,
+} from "recharts";
 
-import totalTreatment from "../assets/total-treatment.png";
-import tradeUp from "../assets/trade-up.png";
-import completed from "../assets/completed.png";
-import tradeDown from "../assets/trade-down.png";
-import download from "../assets/download.png";
-import dialyzer from "../assets/dialyzer.png";
-import tubing from "../assets/tubing.png";
-import others from "../assets/others.png";
-import medication from "../assets/medication.png";
-import menu from "../assets/menu.png";
-import update from "../assets/update.png";
-import deletePatient from "../assets/delete.png";
-import addPatient from "../assets/add-patient.png";
-import sales from "../assets/sales.png";
-import usage from "../assets/usage.png";
-import close2 from "../assets/close2.png";
-import logo from "../assets/hemodialysis.png";
-import view from "../assets/view.png";
-import search from "../assets/search.png";
+
+const getIcon = (type) => {
+  switch (type) {
+    case "dialyzer":
+      return <Package className="w-3 h-3 text-blue-900" />;
+    case "tubing":
+      return <Droplets className="w-3 h-3 text-blue-900" />;
+    case "medication":
+      return <Pill className="w-3 h-3 text-blue-900" />;
+    default:
+      return <Scissors className="w-3 h-3 text-blue-900" />;
+  }
+};
+
+const data = [
+  { name: "High-flux Dialyzer", type: "dialyzer", qty: 12, unit: "pieces" },
+  { name: "Blood Tubing Set", type: "tubing", qty: 12, unit: "sets" },
+  { name: "Dialysate Solution (4L)", type: "other", qty: 48, unit: "bags" },
+  { name: "Heparin (5000 IU)", type: "medication", qty: 12, unit: "vials" },
+  { name: "Saline Solution (500ml)", type: "medication", qty: 24, unit: "bags" },
+  { name: "Needle Set", type: "other", qty: 24, unit: "sets" },
+  { name: "Gauze Pads", type: "other", qty: 120, unit: "pieces" },
+  { name: "Medical Tape", type: "other", qty: 12, unit: "rolls" },
+];
+
+const rawData = [
+  { name: "Dialyzer", today: 18, yesterday: 14 },
+  { name: "Tubing", today: 22, yesterday: 26 },
+  { name: "Dialysate", today: 70, yesterday: 58 },
+  { name: "Heparin", today: 16, yesterday: 10 },
+  { name: "Saline", today: 38, yesterday: 30 },
+  { name: "Needle", today: 42, yesterday: 28 },
+  { name: "Gauze", today: 120, yesterday: 23 },
+  { name: "Tape", today: 20, yesterday: 16 },
+];
+
+const pieData = [
+  { name: "Dialyzer", value: 500 },
+  { name: "Tubing", value: 300 },
+  { name: "Dialysate", value: 700 },
+  { name: "Heparin", value: 200 },
+  { name: "Saline", value: 150 },
+  { name: "Needle", value: 100 },
+  { name: "Gauze", value: 80 },
+  { name: "Tape", value: 60 },
+];
+
+const PIECOLORS = [
+  "#052e1f", 
+  "#064e3b", 
+  "#065f46", 
+  "#047857", 
+  "#10b981", 
+  "#34d399", 
+  "#6ee7b7", 
+  "#d1fae5", 
+];
+
+const COLORS = ["#0c5148", "#1b4486", "#bd7d0f", "#b80f0f"];
+
+const linedata = [
+  { time: "9AM", today: 1020, yesterday: 980 },
+  { time: "9:30AM", today: 1280, yesterday: 1120 },
+  { time: "10AM", today: 1900, yesterday: 1450 },
+  { time: "10:30AM", today: 2300, yesterday: 1750 },
+  { time: "11AM", today: 2650, yesterday: 2050 },
+  { time: "11:30AM", today: 2480, yesterday: 2200 },
+  { time: "12PM", today: 3200, yesterday: 2700 },
+  { time: "12:30PM", today: 3050, yesterday: 2550 },
+  { time: "1PM", today: 2920, yesterday: 2400 },
+  { time: "1:15PM", today: 2700, yesterday: 2250 },
+  { time: "1:30PM", today: 2550, yesterday: 2100 },
+  { time: "1:45PM", today: 2900, yesterday: 2350 },
+  { time: "2PM", today: 4200, yesterday: 3150 },
+];
+
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white/80 backdrop-blur-md border border-white/30 shadow-lg rounded-[12px] px-3 py-2 text-[11px]">
+        <p className="font-semibold text-gray-700 mb-1">{label}</p>
+        <p className="text-[#0c5148]">Today: ₱{payload[0].value}</p>
+        <p className="text-gray-500">Yesterday: ₱{payload[1].value}</p>
+      </div>
+    );
+  }
+  return null;
+};
 
 
 export default function Home() {
-    const [active, setActive] = useState("daily");
-    const [openMenu, setOpenMenu] = useState(false);
-    const [openAddPatient, setOpenAddPatient] = useState(false);
-    const [openAddConsumption, setOpenAddConsumption] = useState(false);
-    const [selectedItem, setSelectedItem] = useState(null);
-    const [activeCard, setActiveCard] = useState(null);
-    const [openEditConsumption, setOpenEditConsumption] = useState(false);
-    const [openStatusMenuId, setOpenStatusMenuId] = useState(null);
-    const [statusMap, setStatusMap] = useState({});
-    const [openEditPatient, setOpenEditPatient] = useState(false);
-    const [openDeletePatient, setOpenDeletePatient] = useState(false);
-    const [openDeleteConsumption, setOpenDeleteConsumption] = useState(false);
-    const [openDownloadDropdown, setOpenDownloadDropdown] = useState(false);
-    const menuRef = useRef(null);
-
-    const reportRef = useRef();
-
-    const downloadPDF = async () => {
-        const element = reportRef.current;
-
-        const canvas = await html2canvas(element, {
-        scale: 2,
-    });
-
-    const imgData = canvas.toDataURL("image/png");
-
-    const pdf = new jsPDF("p", "mm", "a4");
-
-    const imgWidth = 210; // A4 width in mm
-    const pageHeight = 297;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-    pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
-    pdf.save("report.pdf");
-  };
+  const [openDownload, setOpenDownload] = useState(false);
     
+  const [active, setActive] = useState(null);
 
-    const statusStyle = {
-        scheduled: "bg-red-200 text-red-900",
-        inprogress: "bg-blue-200 text-blue-900",
-        completed: "bg-green-200 text-green-900",
-    };
+  const maxToday = Math.max(...rawData.map(d => d.today || 0));
 
-    // close menu if click anywahre
-    useEffect(() => {
-        const handClickOutside = (event) => {
-            if (menuRef.current && !menuRef.current.contains(event.target)) {
-                setOpenMenu(false);
-            }
-        };
+  const data = rawData.map(d => ({ ...d, isMax: d.today === maxToday, }));
 
-        document.addEventListener("mousedown", handClickOutside);
-
-        return () => {
-            document.removeEventListener("mousedown", handClickOutside);
-        };
-    }, []);
-
-    // harcoded data
-    const patients = [
-        { id: 1, name: "San Lang", time: "9:10 PM" },
-        { id: 2, name: "Wang Lin", time: "9:10 PM" },
-        { id: 3, name: "Wei Wuxian", time: "9:10 PM" },
-    ];
-
-    //  change status function
-    const handleStatusChange = (id, newStatus) => {
-        setStatusMap(prev => ({
-            ...prev,
-            [id]: newStatus
-        }));
-    };
+  const ActiveLabel = ({ x, y, width, value, payload }) => {
+    if (!payload?.isMax) return null;
 
     return (
-        <div className="h-screen overflow-y-auto no-scrollbar flex flex-col  gap-3  ">
-
-            {/* heades */}
-            <div className="w-full h-[2rem] flex items-center justify-between mt-[5.4rem]">
-
-                <div className="flex items-center justify-center gap-2">
-                    <div className="h-[1.7rem] w-[3px] bg-[#0B2A66] rounded-full"></div>
-                    <div className="flex flex-col items-start justify-center">
-                        <h2 className="text-blue-900 font-bold text-[14px]">Daily Patient & PhilHealth Summary Report</h2>
-                        <h2 className="text-blue-500 font-semibold text-[9px]">Summary of 12 patients, treatments, and financial records for April 16, 2025</h2>
-                    </div>
-                </div>
-
-                <div className="relative flex items-center justify-center gap-2">
-                    
-                    <button onClick={() => setOpenDownloadDropdown(!openDownloadDropdown)} className="px-4 py-[6px] flex items-center justify-center shadow-lg rounded-[1px] bg-[#00682F] gap-2 hover:bg-green-600"  >
-                        <img src={download} className="w-3 h-3" />
-                        <span className="text-white text-[9px] font-medium"> Download Report </span>
-                    </button>
-
-                    <div style={{ position: "absolute", left: "-99910px", top: 0 }}> <ReportLayout ref={reportRef} /> </div>
-
-                    {openDownloadDropdown && (
-                        <div className="absolute top-full mt-1 w-[10rem] bg-white shadow-md rounded text-[10px] z-10">
-                            
-                            <button onClick={() => { downloadPDF(); setOpenDownloadDropdown(false); }}  className="w-full text-left px-3 py-2 hover:bg-green-100" > PDF (All Patients Report) </button>
-                            <button onClick={() => { console.log("Download Excel"); setOpenDownloadDropdown(false); }} className="w-full text-left px-3 py-2 hover:bg-green-100" > PDF (Patients Only) </button>
-                            <button onClick={() => { console.log("Download CSV"); setOpenDownloadDropdown(false); }} className="w-full text-left px-3 py-2 hover:bg-green-100" > Excel (All Patients Report) </button>
-                            <button onClick={() => { console.log("Download CSV"); setOpenDownloadDropdown(false);  }} className="w-full text-left px-3 py-2 hover:bg-green-100" > Excel (Patients Only) </button>
-                            <button onClick={() => { console.log("Download CSV"); setOpenDownloadDropdown(false);  }} className="w-full text-left px-3 py-2 hover:bg-green-100" > All Reports </button>
-
-                        </div>
-                    )}
-
-                </div>
-
-            </div>
-
-            <div className="flex flex-col gap-3">
-            
-                {/* dashboard cards */}
-                <div className="flex gap-3">
-                    <div className="w-[53rem]  flex flex-wrap gap-3">
-                        <div className="w-full flex items-center justify-center grid grid-cols-4 gap-2">
-
-                            {/* card 1 */}
-                            <div className=" bg-white shadow-md px-3 py-[9px] overflow-hidden flex flex-col hover:scale-105 transition-transform duration-200 ease-in-out">
-                                <div className="flex items-center justify-between gap-2 w-full mt-1">
-                                    <div className="flex items-center justify-center">
-                                        <div className="flex items-center justify-center border-none bg-[#9A0000] rounded-[5px] h-6 w-6">
-                                            <img src={totalTreatment} className="w-5 h-5" />
-                                        </div>
-                                        <div className="flex flex-col items-start justify-start">
-                                            <h2 className="text-black text-[10px] font-bold ml-1">Total Treatments</h2>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center justify-center">
-                                        <img src={tradeUp} className="w-4 h-4" />
-                                        <h2 className="text-[#00682F] text-[10px] font-bold ml-1">+12.08%</h2>
-                                    </div>
-                                </div>
-
-                                <div className="flex flex-col items-center justify-center w-full">
-                                    <h2 className="text-black text-[18px] font-bold leading-none mt-5">12</h2>
-                                    <h2 className="text-gray-500 text-[10px] font-medium">For today </h2>
-                                </div>
-                            </div>
-
-                            {/* card 2 */}
-                            <div className="bg-white shadow-md p-3 overflow-hidden flex flex-col hover:scale-105 transition-transform duration-200 ease-in-out">
-                                <div className="flex items-center justify-between gap-2 w-full mt-1">
-                                    <div className="flex items-center justify-center">
-                                        <div className="flex items-center justify-center border-none bg-[#00682F] rounded-[5px] h-6 w-6">
-                                            <img src={completed} className="w-4 h-4" />
-                                        </div>
-                                        <div className="flex flex-col items-start justify-start">
-                                            <h2 className="text-black text-[10px] font-bold ml-1">Completed</h2>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center justify-center">
-                                        <img src={tradeUp} className="w-4 h-4" />
-                                        <h2 className="text-[#00682F] text-[10px] font-bold ml-1">+12.08%</h2>
-                                    </div>
-                                </div>
-
-                                <div className="flex flex-col items-center justify-center w-full">
-                                    <h2 className="text-black text-[18px] font-bold leading-none mt-5">8</h2>
-                                    <h2 className="text-gray-500 text-[10px] font-medium">Finished </h2>
-                                </div>
-                            </div>
-
-                            {/* card 3 */}
-                            <div className="bg-white shadow-md p-3 overflow-hidden flex flex-col hover:scale-105 transition-transform duration-200 ease-in-out">
-                                <div className="flex items-center justify-between gap-2 w-full mt-1">
-                                    <div className="flex items-center justify-center">
-                                        <div className="flex items-center justify-center border-none bg-[#002060] rounded-[5px] h-6 w-6">
-                                            <img src={completed} className="w-4 h-4" />
-                                        </div>
-                                        <div className="flex flex-col items-start justify-start">
-                                            <h2 className="text-black text-[10px] font-bold ml-1">In Progress</h2>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center justify-center">
-                                        <img src={tradeDown} className="w-4 h-4" />
-                                        <h2 className="text-[#9E0000] text-[10px] font-bold ml-1">-12.08%</h2>
-                                    </div>
-                                </div>
-
-                                <div className="flex flex-col items-center justify-center w-full">
-                                    <h2 className="text-black text-[18px] font-bold leading-none mt-5">4</h2>
-                                    <h2 className="text-gray-500 text-[10px] font-medium">Active Session </h2>
-                                </div>
-                            </div>
-
-                            {/* card 4 */}
-                            <div className="bg-white shadow-md p-3 overflow-hidden flex flex-col hover:scale-105 transition-transform duration-200 ease-in-out">
-                                <div className="flex items-center justify-between gap-2 w-full mt-1">
-                                    <div className="flex items-center justify-center">
-                                        <div className="flex items-center justify-center border-none bg-[#690B69] rounded-[5px] h-6 w-6">
-                                            <img src={totalTreatment} className="w-4 h-4" />
-                                        </div>
-                                        <div className="flex flex-col items-start justify-start">
-                                            <h2 className="text-black text-[10px] font-bold ml-1">Scheduled</h2>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center justify-center">
-                                        <img src={tradeDown} className="w-4 h-4" />
-                                        <h2 className="text-[#9E0000] text-[10px] font-bold ml-1">-12.08%</h2>
-                                    </div>
-                                </div>
-
-                                <div className="flex flex-col items-center justify-center w-full">
-                                    <h2 className="text-black text-[18px] font-bold leading-none mt-5">7</h2>
-                                    <h2 className="text-gray-500 text-[10px] font-medium">Upcoming today</h2>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                </div>
-                
-                {/* search and add patient */}
-                <div className="w-full h-[2rem] flex items-center mt-1 justify-between">
-                    
-                    <div className="flex items-center justify-center gap-2">
-                        <div className="relative flex items-center justify-center w-[15rem] border border-blue-900 rounded-[2px] px-2">
-                            <input type="text" placeholder="Search patient..." className="w-full text-[10px] py-1 outline-none" />
-                        </div>
-                        <button className="py-[6px] px-7 flex items-center justify-center shadow-lg rounded-[1px] bg-[#0B2A66] gap-2 hover:bg-blue-600">
-                            <img src={search} className="w-3 h-3" />
-                            <span className="text-white text-[9px] font-medium">Search</span>
-                        </button>
-                    </div>
-                    
-
-                    <div className="flex items-center justify-center">
-                        <button onClick={() => setOpenAddPatient(true)} className="py-[6px] px-7 flex items-center justify-center shadow-lg rounded-[1px] bg-[#0B2A66] gap-2 hover:bg-blue-600">
-                            <img src={addPatient} className="w-3 h-3" />
-                            <span className="text-white text-[9px] font-medium">Add Patient</span>
-                        </button>
-                    </div>
-
-                </div>
-                
-                {/* table */}
-                <div className="w-full h-[15rem] bg-white shadow-md px-4 py-3  text-[12px]">
-                    <div className="h-full overflow-hidden">        
-                        <div className="h-full overflow-y-auto no-scrollable">
-                            <table className="w-full border-collapse">
-                                <thead className="sticky  top-0 bg-[#0B2A66] z-10 shadow-sm">
-                                    <tr>
-                                        <th className="text-center py-1 px-4 text-[10px] font-medium text-white tracking-[0.1em]">Name</th>
-                                        <th className="text-center py-1 px-4 text-[10px] font-medium text-white tracking-[0.1em]">Time</th>
-                                        <th className="text-center py-1 px-4 text-[10px] font-medium text-white tracking-[0.1em]">Tests</th>
-                                        <th className="text-center py-1 px-4 text-[10px] font-medium text-white tracking-[0.1em]">Status</th>
-                                        <th className="text-center py-1 px-4 text-[10px] font-medium text-white tracking-[0.1em]">Actions</th>
-                                        
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {patients.map((p) => {
-                                        const currentStatus = statusMap[p.id] || "scheduled";
-
-                                        return (
-                                            <tr key={p.id} className="border-b border-gray-200 hover:bg-gray-200">
-
-                                                <td className="py-1 px-6 text-[10px] text-black text-left"> {p.name} </td>
-                                                <td className="py-1  text-[10px] text-black text-center"> {p.time} </td>
-                                                <td className="py-1 text-[10px] text-black text-left">
-                                                    <div className="flex flex-col gap-[2px] pl-4">
-                                                        <span>Hemodialysis Supervision</span>
-                                                        <span>Medical Assessment</span>
-                                                        <span>Treatment Plan Review</span>
-                                                    </div>
-                                                </td>
-
-                                                <td className="py-1  text-center relative">
-
-                                                    <div onClick={() => setOpenStatusMenuId(openStatusMenuId === p.id ? null : p.id) } className={`w-[4rem] flex items-center justify-center py-1 rounded-[1px] cursor-pointer rounded-[3px] ${statusStyle[currentStatus]}`} >
-                                                        <h2 className="text-[9px] font-bold">
-                                                            {currentStatus === "inprogress" ? "In Progress" : currentStatus.charAt(0).toUpperCase() + currentStatus.slice(1)}
-                                                        </h2>
-                                                    </div>
-
-                                                    {openStatusMenuId === p.id && (
-                                                        <div className="absolute top-full mt-1  w-24 bg-white shadow-lg border border-gray-300 z-50">
-
-                                                            <div onClick={() => { handleStatusChange(p.id, "scheduled"); setOpenStatusMenuId(null); }} className="px-2 py-1 text-[10px] hover:bg-red-100 text-red-900 cursor-pointer" >Scheduled</div>
-                                                            <div onClick={() => { handleStatusChange(p.id, "inprogress"); setOpenStatusMenuId(null); }} className="px-2 py-1 text-[10px] hover:bg-blue-100 text-blue-900 cursor-pointer" >In Progress</div>
-                                                            <div onClick={() => { handleStatusChange(p.id, "completed"); setOpenStatusMenuId(null); }} className="px-2 py-1 text-[10px] hover:bg-green-100 text-green-900 cursor-pointer" >Completed</div>
-
-                                                        </div>
-                                                    )}
-
-                                                </td>
-
-                                                <td className="py-4  flex items-center justify-center gap-2">
-                                                    <div className="h-7 w-7 rounded-[3px] bg-blue-900 flex items-center justify-center">
-                                                        <img src={view} className="w-3 h-3" />
-                                                    </div>
-                                                    <div onClick={() => setOpenEditPatient(true)} className="h-7 w-7 rounded-[3px] bg-[#C09200] flex items-center justify-center">
-                                                        <img src={update} className="w-3 h-3" />
-                                                    </div>
-                                                    <div onClick={() => setOpenDeletePatient(true)} className="h-7 w-7 rounded-[3px] bg-red-900 flex items-center justify-center">
-                                                        <img src={deletePatient} className="w-3 h-3" />
-                                                    </div>
-                                                    
-                                                </td>
-
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                {/* consumptions */}
-                <div className="w-full flex gap-3 items-start justify-center">
-                    <div className="w-5/6  bg-white shadow-md p-3 flex flex-col items-start justify-center">
-                    <div className="flex items-center justify-between w-full">
-                            <div className="flex items-start justify-start mb-3">
-                                <div className="h-[1rem] w-[3px] bg-[#0B2A66] rounded-full"></div>
-                                <span className="text-black font-bold text-[11px] ml-2">Daily Consumptions</span>
-                            </div>
-
-                            <div className="flex items-center justify-center relative" ref={menuRef}>
-                                {active === "daily" && (
-                                    <div onClick={() => setOpenMenu(!openMenu)} className="flex items-center justify-center py-1 rounded-full mb-1 hover:bg-gray-200">
-                                        <img src={menu} className="h-3 w-3" />
-                                    </div>
-                                )}
-
-                                {/* dropdown menu */}
-                                {openMenu && (
-                                    <div className="absolute top-full mt-1 right-0 w-28 bg-white  shadow-lg border border-gray-300 text-xs z-50">
-
-                                        <button onClick={() => { setOpenAddConsumption(true); setOpenMenu(false)}} className="w-full rounded-[3px] text-center px-3 py-2 hover:bg-gray-100 text-[10px] font-medium">ADD </button>
-                                        <button onClick={() => setOpenEditConsumption(true)} className="w-full text-center px-3 rounded-[3px] py-2 hover:bg-gray-100 text-[10px] font-medium"> EDIT </button>
-                                        <button onClick={() => setOpenDeleteConsumption(true)} className="w-full text-center rounded-[3px] px-3 py-2 hover:bg-red-100 text-red-600 text-[10px] font-medium">DELETE</button>
-
-                                    </div>
-                                )}
-
-                            </div>
-                    </div>
-                        
-                        {/* tabs */}
-                        <div className="w-full bg-gray-200 flex">
-                            
-                            <button onClick={() => setActive("daily")} className={`flex-1 text-[10px] font-medium py-[5px] transition ${active === "daily" ? "bg-[#0B2A66] text-white" : "text-black hover:bg-[#0B2A66] hover:text-white" }`} > Daily Supplies Consumption </button>
-                            <button onClick={() => setActive("sales")} className={`flex-1 text-[10px] font-medium py-[3px] transition ${active === "sales" ? "bg-[#0B2A66] text-white" : "text-black hover:bg-[#0B2A66] hover:text-white" }`} > Total Daily Sales </button>
-
-                        </div>
-
-                        {/* Content */}
-                        <div className="flex-1 overflow-y-auto mt-2 no-scrollbar w-full">
-                            {active === "daily" && (
-                                <div className="grid grid-cols-2 gap-3 p-2 w-full">
-                                
-                                    <div
-                                        onClick={() => {
-                                            if (activeCard === "dialyzer") {
-                                                // unselect if already selected
-                                                    setActiveCard(null);
-                                                    setSelectedItem(null);
-                                                } else {
-                                                    // select
-                                                    setActiveCard("dialyzer");
-                                                    setSelectedItem({
-                                                    name: "High-flux Dialyzer",
-                                                    category: "dialyzer",
-                                                    quantity: 12,
-                                                    unit: "pieces"
-                                                    });
-                                                }
-                                            }}
-                                        className={`shadow-md text-[10px] font-medium border border-gray-300/50 p-2 h-[3rem]
-                                            ${activeCard === "dialyzer"
-                                            ? "bg-gray-300"
-                                            : "bg-white hover:bg-gray-100"
-                                            }`}
-                                    >
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center justify-center">
-                                                <div className="h-7 w-7 flex items-center justify-center rounded-[2px] bg-red-900">
-                                                    <img src={dialyzer} className="h-5 w-5" />
-                                                </div>
-                                                <div className="flex flex-col items-start justify-start">
-                                                    <h2 className="text-[10px] text-black font-bold ml-2">High-flux Dialyzer</h2>
-                                                    <h2 className="text-[10px] text-gray-500 font-bold ml-2">Dialyzer</h2>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex flex-col items-center justify-center">
-                                                <h2 className="text-[10px] text-black font-bold">12</h2>
-                                                <h2 className="text-[10px] text-gray-500 font-bold">pieces</h2>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="bg-white shadow-md text-[10px] font-medium border border-gray-300/50 p-2 h-[3rem]">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center justify-center">
-                                                <div className="h-7 w-7 flex items-center justify-center rounded-[2px] bg-green-900">
-                                                    <img src={tubing} className="h-5 w-5" />
-                                                </div>
-                                                <div className="flex flex-col items-start justify-start">
-                                                    <h2 className="text-[10px] text-black font-bold ml-2">Blood Tubing Set</h2>
-                                                    <h2 className="text-[10px] text-gray-500 font-bold ml-2">Tubing</h2>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex flex-col items-center justify-center">
-                                                <h2 className="text-[10px] text-black font-bold">12</h2>
-                                                <h2 className="text-[10px] text-gray-500 font-bold">sets</h2>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="bg-white shadow-md text-[10px] font-medium border border-gray-300/50 p-2 h-[3rem]">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center justify-center">
-                                                <div className="h-7 w-7 flex items-center justify-center rounded-[2px] bg-white border border-gray-300">
-                                                    <img src={others} className="h-5 w-5" />
-                                                </div>
-                                                <div className="flex flex-col items-start justify-start">
-                                                    <h2 className="text-[10px] text-black font-bold ml-2">Dialysate Solution (4L)</h2>
-                                                    <h2 className="text-[10px] text-gray-500 font-bold ml-2">Other</h2>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex flex-col items-center justify-center">
-                                                <h2 className="text-[10px] text-black font-bold">48</h2>
-                                                <h2 className="text-[10px] text-gray-500 font-bold">bags</h2>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="bg-white shadow-md text-[10px] font-medium border border-gray-300/50 p-2 h-[3rem]">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center justify-center">
-                                                <div className="h-7 w-7 flex items-center justify-center rounded-[2px] bg-blue-900">
-                                                    <img src={medication} className="h-5 w-5" />
-                                                </div>
-                                                <div className="flex flex-col items-start justify-start">
-                                                    <h2 className="text-[10px] text-black font-bold ml-2">Heparin (5000 UI)</h2>
-                                                    <h2 className="text-[10px] text-gray-500 font-bold ml-2">Medication</h2>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex flex-col items-center justify-center">
-                                                <h2 className="text-[10px] text-black font-bold">12</h2>
-                                                <h2 className="text-[10px] text-gray-500 font-bold">vials</h2>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="bg-white shadow-md text-[10px] font-medium border border-gray-300/50 p-2 h-[3rem]">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center justify-center">
-                                                <div className="h-7 w-7 flex items-center justify-center rounded-[2px] bg-blue-900">
-                                                    <img src={medication} className="h-5 w-5" />
-                                                </div>
-                                                <div className="flex flex-col items-start justify-start">
-                                                    <h2 className="text-[10px] text-black font-bold ml-2">Saline Solution (500 ML)</h2>
-                                                    <h2 className="text-[10px] text-gray-500 font-bold ml-2">Medication</h2>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex flex-col items-center justify-center">
-                                                <h2 className="text-[10px] text-black font-bold">12</h2>
-                                                <h2 className="text-[10px] text-gray-500 font-bold">bags</h2>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="bg-white shadow-md text-[10px] font-medium border border-gray-300/50 p-2 h-[3rem]">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center justify-center">
-                                                <div className="h-7 w-7 flex items-center justify-center rounded-[2px] bg-white border border-gray-300">
-                                                    <img src={others} className="h-5 w-5" />
-                                                </div>
-                                                <div className="flex flex-col items-start justify-start">
-                                                    <h2 className="text-[10px] text-black font-bold ml-2">Needle Set</h2>
-                                                    <h2 className="text-[10px] text-gray-500 font-bold ml-2">Other</h2>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex flex-col items-center justify-center">
-                                                <h2 className="text-[10px] text-black font-bold">24</h2>
-                                                <h2 className="text-[10px] text-gray-500 font-bold">sets</h2>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="bg-white shadow-md text-[10px] font-medium border border-gray-300/50 p-2 h-[3rem]">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center justify-center">
-                                                <div className="h-7 w-7 flex items-center justify-center rounded-[2px] bg-white border border-gray-300">
-                                                    <img src={others} className="h-5 w-5" />
-                                                </div>
-                                                <div className="flex flex-col items-start justify-start">
-                                                    <h2 className="text-[10px] text-black font-bold ml-2">Gauze Pads</h2>
-                                                    <h2 className="text-[10px] text-gray-500 font-bold ml-2">Other</h2>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex flex-col items-center justify-center">
-                                                <h2 className="text-[10px] text-black font-bold">120</h2>
-                                                <h2 className="text-[10px] text-gray-500 font-bold">pieces</h2>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="bg-white shadow-md text-[10px] font-medium border border-gray-300/50 p-2 h-[3rem]">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center justify-center">
-                                                <div className="h-7 w-7 flex items-center justify-center rounded-[2px] bg-white border border-gray-300">
-                                                    <img src={others} className="h-5 w-5" />
-                                                </div>
-                                                <div className="flex flex-col items-start justify-start">
-                                                    <h2 className="text-[10px] text-black font-bold ml-2">Medical Tape</h2>
-                                                    <h2 className="text-[10px] text-gray-500 font-bold ml-2">Other</h2>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex flex-col items-center justify-center">
-                                                <h2 className="text-[10px] text-black font-bold">12</h2>
-                                                <h2 className="text-[10px] text-gray-500 font-bold">rolls</h2>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                </div>
-                            )}
-
-                            {active === "sales" && (
-                                <div className="grid grid-cols-2 gap-3 p-2 w-full">
-                                
-                                    <div className="bg-red-200/50 shadow-md text-[10px] font-medium border border-gray-300/50 p-2 h-[6rem]">
-                                        <div className="flex flex-col items-center justify-center gap-4">
-                                            <div className="flex items-center justify-between w-full">
-                                                <div className="flex items-center justify-center">
-                                                    <div className="h-7 w-7 flex items-center justify-center rounded-[2px] bg-red-900">
-                                                        <img src={dialyzer} className="h-5 w-5" />
-                                                    </div>
-                                                    <div className="flex flex-col items-start justify-start">
-                                                        <h2 className="text-[10px] text-black font-bold ml-2">High-flux Dialyzer</h2>
-                                                        <h2 className="text-[10px] text-gray-500 font-bold ml-2">Dialyzer</h2>
-                                                        <h2 className="text-[10px] text-gray-500 font-bold ml-2">₱1,250.00 per piece</h2>
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex flex-col items-center justify-center">
-                                                    <h2 className="text-[10px] text-black font-bold">12</h2>
-                                                    <h2 className="text-[10px] text-gray-500 font-bold">pieces</h2>
-                                                </div>
-                                            </div>
-                                            <div className="w-full flex items-start justify-center">
-                                                <h2 className="text-[12px] text-green-900 font-bold ml-2">₱15,250.00{" "}<span className="text-[10px] text-gray-500">total cost</span></h2>
-                                            </div>
-
-                                        </div>
-                                    </div>
-
-                                    <div className="bg-green-200/50 shadow-md text-[10px] font-medium border border-gray-300/50 p-2 h-[6rem]">
-                                        <div className="flex flex-col items-center justify-center gap-4">
-                                            <div className="flex items-center justify-between w-full">
-                                                <div className="flex items-center justify-center">
-                                                    <div className="h-7 w-7 flex items-center justify-center rounded-[2px] bg-green-900">
-                                                        <img src={tubing} className="h-5 w-5" />
-                                                    </div>
-                                                    <div className="flex flex-col items-start justify-start">
-                                                        <h2 className="text-[10px] text-black font-bold ml-2">High-flux Dialyzer</h2>
-                                                        <h2 className="text-[10px] text-gray-500 font-bold ml-2">Dialyzer</h2>
-                                                        <h2 className="text-[10px] text-gray-500 font-bold ml-2">₱1,250.00 per piece</h2>
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex flex-col items-center justify-center">
-                                                    <h2 className="text-[10px] text-black font-bold">12</h2>
-                                                    <h2 className="text-[10px] text-gray-500 font-bold">pieces</h2>
-                                                </div>
-                                            </div>
-                                            <div className="w-full flex items-start justify-center">
-                                                <h2 className="text-[12px] text-green-900 font-bold ml-2">₱15,250.00{" "}<span className="text-[10px] text-gray-500">total cost</span></h2>
-                                            </div>
-
-                                        </div>
-                                    </div>
-
-                                    <div className="bg-blue-200/50 shadow-md text-[10px] font-medium border border-gray-300/50 p-2 h-[6rem]">
-                                        <div className="flex flex-col items-center justify-center gap-4">
-                                            <div className="flex items-center justify-between w-full">
-                                                <div className="flex items-center justify-center">
-                                                    <div className="h-7 w-7 flex items-center justify-center rounded-[2px] bg-blue-900">
-                                                        <img src={medication} className="h-5 w-5" />
-                                                    </div>
-                                                    <div className="flex flex-col items-start justify-start">
-                                                        <h2 className="text-[10px] text-black font-bold ml-2">High-flux Dialyzer</h2>
-                                                        <h2 className="text-[10px] text-gray-500 font-bold ml-2">Dialyzer</h2>
-                                                        <h2 className="text-[10px] text-gray-500 font-bold ml-2">₱1,250.00 per piece</h2>
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex flex-col items-center justify-center">
-                                                    <h2 className="text-[10px] text-black font-bold">12</h2>
-                                                    <h2 className="text-[10px] text-gray-500 font-bold">pieces</h2>
-                                                </div>
-                                            </div>
-                                            <div className="w-full flex items-start justify-center">
-                                                <h2 className="text-[12px] text-green-900 font-bold ml-2">₱15,250.00{" "}<span className="text-[10px] text-gray-500">total cost</span></h2>
-                                            </div>
-
-                                        </div>
-                                    </div>
-
-                                    <div className="bg-white shadow-md text-[10px] font-medium border border-gray-300/50 p-2 h-[6rem]">
-                                        <div className="flex flex-col items-center justify-center gap-4">
-                                            <div className="flex items-center justify-between w-full">
-                                                <div className="flex items-center justify-center">
-                                                    <div className="h-7 w-7 flex items-center justify-center rounded-[2px] bg-white-900 border border-gray-300">
-                                                        <img src={others} className="h-5 w-5" />
-                                                    </div>
-                                                    <div className="flex flex-col items-start justify-start">
-                                                        <h2 className="text-[10px] text-black font-bold ml-2">High-flux Dialyzer</h2>
-                                                        <h2 className="text-[10px] text-gray-500 font-bold ml-2">Dialyzer</h2>
-                                                        <h2 className="text-[10px] text-gray-500 font-bold ml-2">₱1,250.00 per piece</h2>
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex flex-col items-center justify-center">
-                                                    <h2 className="text-[10px] text-black font-bold">12</h2>
-                                                    <h2 className="text-[10px] text-gray-500 font-bold">pieces</h2>
-                                                </div>
-                                            </div>
-                                            <div className="w-full flex items-start justify-center">
-                                                <h2 className="text-[12px] text-green-900 font-bold ml-2">₱15,250.00{" "}<span className="text-[10px] text-gray-500">total cost</span></h2>
-                                            </div>
-
-                                        </div>
-                                    </div>
-
-                                    <div className="bg-red-200/50 shadow-md text-[10px] font-medium border border-gray-300/50 p-2 h-[6rem]">
-                                        <div className="flex flex-col items-center justify-center gap-4">
-                                            <div className="flex items-center justify-between w-full">
-                                                <div className="flex items-center justify-center">
-                                                    <div className="h-7 w-7 flex items-center justify-center rounded-[2px] bg-red-900">
-                                                        <img src={dialyzer} className="h-5 w-5" />
-                                                    </div>
-                                                    <div className="flex flex-col items-start justify-start">
-                                                        <h2 className="text-[10px] text-black font-bold ml-2">High-flux Dialyzer</h2>
-                                                        <h2 className="text-[10px] text-gray-500 font-bold ml-2">Dialyzer</h2>
-                                                        <h2 className="text-[10px] text-gray-500 font-bold ml-2">₱1,250.00 per piece</h2>
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex flex-col items-center justify-center">
-                                                    <h2 className="text-[10px] text-black font-bold">12</h2>
-                                                    <h2 className="text-[10px] text-gray-500 font-bold">pieces</h2>
-                                                </div>
-                                            </div>
-                                            <div className="w-full flex items-start justify-center">
-                                                <h2 className="text-[12px] text-green-900 font-bold ml-2">₱15,250.00{" "}<span className="text-[10px] text-gray-500">total cost</span></h2>
-                                            </div>
-
-                                        </div>
-                                    </div>
-
-                                    <div className="bg-red-200/50 shadow-md text-[10px] font-medium border border-gray-300/50 p-2 h-[6rem]">
-                                        <div className="flex flex-col items-center justify-center gap-4">
-                                            <div className="flex items-center justify-between w-full">
-                                                <div className="flex items-center justify-center">
-                                                    <div className="h-7 w-7 flex items-center justify-center rounded-[2px] bg-red-900">
-                                                        <img src={dialyzer} className="h-5 w-5" />
-                                                    </div>
-                                                    <div className="flex flex-col items-start justify-start">
-                                                        <h2 className="text-[10px] text-black font-bold ml-2">High-flux Dialyzer</h2>
-                                                        <h2 className="text-[10px] text-gray-500 font-bold ml-2">Dialyzer</h2>
-                                                        <h2 className="text-[10px] text-gray-500 font-bold ml-2">₱1,250.00 per piece</h2>
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex flex-col items-center justify-center">
-                                                    <h2 className="text-[10px] text-black font-bold">12</h2>
-                                                    <h2 className="text-[10px] text-gray-500 font-bold">pieces</h2>
-                                                </div>
-                                            </div>
-                                            <div className="w-full flex items-start justify-center">
-                                                <h2 className="text-[12px] text-green-900 font-bold ml-2">₱15,250.00{" "}<span className="text-[10px] text-gray-500">total cost</span></h2>
-                                            </div>
-
-                                        </div>
-                                    </div>
-
-                                    <div className="bg-red-200/50 shadow-md text-[10px] font-medium border border-gray-300/50 p-2 h-[6rem]">
-                                        <div className="flex flex-col items-center justify-center gap-4">
-                                            <div className="flex items-center justify-between w-full">
-                                                <div className="flex items-center justify-center">
-                                                    <div className="h-7 w-7 flex items-center justify-center rounded-[2px] bg-red-900">
-                                                        <img src={dialyzer} className="h-5 w-5" />
-                                                    </div>
-                                                    <div className="flex flex-col items-start justify-start">
-                                                        <h2 className="text-[10px] text-black font-bold ml-2">High-flux Dialyzer</h2>
-                                                        <h2 className="text-[10px] text-gray-500 font-bold ml-2">Dialyzer</h2>
-                                                        <h2 className="text-[10px] text-gray-500 font-bold ml-2">₱1,250.00 per piece</h2>
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex flex-col items-center justify-center">
-                                                    <h2 className="text-[10px] text-black font-bold">12</h2>
-                                                    <h2 className="text-[10px] text-gray-500 font-bold">pieces</h2>
-                                                </div>
-                                            </div>
-                                            <div className="w-full flex items-start justify-center">
-                                                <h2 className="text-[12px] text-green-900 font-bold ml-2">₱15,250.00{" "}<span className="text-[10px] text-gray-500">total cost</span></h2>
-                                            </div>
-
-                                        </div>
-                                    </div>
-                                    
-
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* sales and consumption grand total */}
-                    <div className="w-[15rem] flex flex-col items-center justify-start gap-3">
-                        <div className="w-full bg-white shadow-md p-3 overflow-hidden flex flex-col hover:scale-105 transition-transform duration-200 ease-in-out">
-                            <div className="flex items-center justify-between gap-2 w-full mt-1">
-                                <div className="flex items-center justify-center">
-                                    <div className="flex items-center justify-center border-none bg-black rounded-[5px] h-6 w-6">
-                                        <img src={sales} className="w-4 h-4" />
-                                    </div>
-                                    <div className="flex flex-col items-start justify-start">
-                                        <h2 className="text-black text-[10px] font-bold ml-1">Total Sales</h2>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center justify-center">
-                                    <img src={tradeUp} className="w-4 h-4" />
-                                    <h2 className="text-[#00682F] text-[10px] font-bold ml-1">+12.08%</h2>
-                                </div>
-                            </div>
-
-                            <div className="flex flex-col items-center justify-center w-full">
-                                <h2 className="text-black text-[18px] font-bold leading-none mt-5">₱44, 520.00</h2>
-                                <h2 className="text-gray-500 text-[10px] font-medium">Supply sales total </h2>
-                            </div>
-                        </div>
-
-                        <div className="w-full h-1/2 bg-white shadow-md p-3 overflow-hidden flex flex-col hover:scale-105 transition-transform duration-200 ease-in-out">
-                            <div className="flex items-center justify-between gap-2 w-full mt-1">
-                                <div className="flex items-center justify-center">
-                                    <div className="flex items-center justify-center border border-gray-400 bg-white  rounded-[5px] h-6 w-6">
-                                        <img src={usage} className="w-4 h-4" />
-                                    </div>
-                                    <div className="flex flex-col items-start justify-start">
-                                        <h2 className="text-black text-[10px] font-bold ml-1">Daily Supply Usage</h2>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center justify-center">
-                                    <img src={tradeUp} className="w-4 h-4" />
-                                    <h2 className="text-[#00682F] text-[10px] font-bold ml-1">+12.08%</h2>
-                                </div>
-                            </div>
-
-                            <div className="flex flex-col items-center justify-center w-full">
-                                <h2 className="text-black text-[18px] font-bold leading-none mt-5">90</h2>
-                                <h2 className="text-gray-500 text-[10px] font-medium">Supply consumption </h2>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-
-            {/* start: dropdowns and modals */}
-
-
-            {/* add patient modal */}
-            {openAddPatient && (
-                <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-                    <div className="bg-white w-[18rem] px-4 py-4 shadow-lg relative flex flex-col items-center justify-center">
-                        <div className="w-full flex items-center justify-between">
-                            <div className="flex items-center justify-center gap-1">
-                                <img src={logo} className="h-9 w-9" />
-                                <h2 className="text-black font-bold text-[12px]">Add Patient</h2>
-                            </div>
-                            <div onClick={() => setOpenAddPatient(false)} className="flex items-center justify-center h-5 w-5 hover:bg-gray-300">
-                                <img src={close2} className="h-4 w-4" />
-                            </div>
-                        </div>
-
-                        <form action="" className="w-full px-2 py-2 mt-2">
-                            <div className="flex flex-col items-start justify-center">
-                                <label htmlFor="fullName" className="text-[10px]">Fullname</label>
-                                <input type="text" className="w-full mt-1 border border-gray-400 p-1 rounded-[2px] text-[10px] focus:outline-none focus:border-[#0B2A66]" />
-                            </div>
-
-                            <div className="flex flex-col items-start justify-center mt-3">
-                                <label htmlFor="fullName" className="text-[10px]">Time</label>
-                                <input type="time" className="w-full mt-1 border border-gray-400 p-1 rounded-[2px] text-[10px] focus:outline-none focus:border-[#0B2A66]" />
-                            </div>
-
-                            <div className="flex flex-col items-start justify-center mt-3">
-
-                                <label className="text-[10px]">Lab Tests</label>
-                                <select multiple  className="w-full mt-1 border border-gray-400 p-1 rounded-[2px] text-[10px] focus:outline-none focus:border-[#0B2A66]" >
-                                    <option value="hemodialysis-supervision">Hemodialysis Supervision</option>
-                                    <option value="medical-assessment">Medical Assessment</option>
-                                    <option value="treatment-plan-review">Treatment Plan Review</option>
-                                    <option value="patient-consultation"> Patient Consultation</option>
-                                    <option value="lab-interpretation">Lab Interpretation</option>
-                                    <option value="follow-up-care">Follow-up Care</option>
-                                </select>
-                            </div>
-
-                            <div className="flex flex-col items-start justify-center mt-3">
-                                <label className="text-[10px]">Doctor</label>
-                                <select  className="w-full mt-1 border border-gray-400 p-1 rounded-[2px] text-[10px] focus:outline-none focus:border-[#0B2A66]" >
-                                    <option value="hemodialysis-supervision">Hemodialysis Supervision</option>
-                                    <option value="medical-assessment">Medical Assessment</option>
-                                    <option value="treatment-plan-review">Treatment Plan Review</option>
-                                    <option value="patient-consultation"> Patient Consultation</option>
-                                    <option value="lab-interpretation">Lab Interpretation</option>
-                                    <option value="follow-up-care">Follow-up Care</option>
-                                </select>
-                            </div>
-
-                            <div className="flex flex-col items-start justify-center mt-3">
-
-                                <label className="text-[10px]">Status</label>
-
-                                <select
-                                    className="w-full mt-1 border border-gray-400 p-1 rounded-[2px] text-[10px] focus:outline-none focus:border-[#0B2A66]"
-                                >
-                                    <option value="new entry">New Entry</option>
-                                    <option value="scheduled">Scheduled</option>
-                                    <option value="inprogress">In Progress</option>
-                                    <option value="completed">Completed</option>
-                                </select>
-
-                            </div>
-
-                            <button className="w-full py-1 bg-[#002060] hover:bg-blue-600 flex items-center justify-center rounded-[3px] shadow-md text-white text-[10px] mt-4 font-medium">Submit</button>
-                        </form>
-                    </div>
-                </div>
-            )}
-
-            {/* update  patient modal */}
-            {openEditPatient && (
-                <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-                    <div className="bg-white w-[18rem] px-4 py-4 shadow-lg relative flex flex-col items-center justify-center">
-                        <div className="w-full flex items-center justify-between">
-                            <div className="flex items-center justify-center gap-1">
-                                <img src={logo} className="h-9 w-9" />
-                                <h2 className="text-black font-bold text-[12px]">Update Patient</h2>
-                            </div>
-                            <div onClick={() => setOpenEditPatient(false)} className="flex items-center justify-center h-5 w-5 hover:bg-gray-300">
-                                <img src={close2} className="h-4 w-4" />
-                            </div>
-                        </div>
-
-                        <form action="" className="w-full px-2 py-2 mt-2">
-                            <div className="flex flex-col items-start justify-center">
-                                <label htmlFor="fullName" className="text-[10px]">Fullname</label>
-                                <input type="text" className="w-full mt-1 border border-gray-400 p-1 rounded-[2px] text-[10px] focus:outline-none focus:border-[#0B2A66]" />
-                            </div>
-
-                            <div className="flex flex-col items-start justify-center mt-3">
-                                <label htmlFor="fullName" className="text-[10px]">Time</label>
-                                <input type="time" className="w-full mt-1 border border-gray-400 p-1 rounded-[2px] text-[10px] focus:outline-none focus:border-[#0B2A66]" />
-                            </div>
-
-                            <div className="flex flex-col items-start justify-center mt-3">
-
-                                <label className="text-[10px]">Status</label>
-
-                                <select
-                                    className="w-full mt-1 border border-gray-400 p-1 rounded-[2px] text-[10px] focus:outline-none focus:border-[#0B2A66]"
-                                >
-                                    <option value="new entry">New Entry</option>
-                                    <option value="scheduled">Scheduled</option>
-                                    <option value="inprogress">In Progress</option>
-                                    <option value="completed">Completed</option>
-                                </select>
-
-                            </div>
-
-                            <button className="w-full py-1 bg-[#002060] rounded-[3px] hover:bg-blue-600 flex items-center justify-center shadow-md text-white text-[10px] mt-4 font-medium">Update</button>
-                        </form>
-                    </div>
-                </div>
-            )}
-
-            {/* delete  patient modal */}
-            {openDeletePatient && (
-                <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-                    <div className="bg-white w-[16rem] px-4 py-4 shadow-lg relative flex flex-col items-center justify-center">
-                        <div className="w-full flex items-center justify-between">
-                            <div className="flex items-center justify-center gap-1">
-                                <img src={logo} className="h-9 w-9" />
-                                <h2 className="text-black font-bold text-[12px]">Confirm Delete</h2>
-                            </div>
-                            <div onClick={() => setOpenDeletePatient(false)} className="flex items-center justify-center h-5 w-5 hover:bg-gray-300">
-                                <img src={close2} className="h-3 w-3" />
-                            </div>
-                        </div>
-
-                        <div className="flex items-center justify-center py-2 w-full mt-2">
-                            <h2 className="font-medium text-[10px] text-black">Are you sure you want to delete this patient?</h2>
-                        </div>
-
-                        <div onClick={() => setOpenDeletePatient(false)} className="flex justify-end gap-2 w-full">
-                            <button className=" py-1 bg-white hover:bg-gray-400 flex items-center justify-center shadow-md rounded-[3px] text-black border border-gray-300 text-[10px] mt-4 px-2">Cancel</button>
-                            <button className=" py-1 bg-red-900 hover:bg-red-500 flex items-center justify-center shadow-md rounded-[3px] text-white text-[10px] mt-4 px-2">Confirm</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* add consumption */}
-            {openAddConsumption && (
-                <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-                    <div className="bg-white w-[18rem] px-4 py-4 shadow-lg relative flex flex-col items-center justify-center">
-                        <div className="w-full flex items-center justify-between">
-                            <div className="flex items-center justify-center gap-1">
-                                <img src={logo} className="h-9 w-9" />
-                                <h2 className="text-black font-bold text-[12px]">Add Supply Consumption</h2>
-                            </div>
-                            <div onClick={() => setOpenAddConsumption(false)} className="flex items-center justify-center h-5 w-5 hover:bg-gray-300">
-                                <img src={close2} className="h-4 w-4" />
-                            </div>
-                        </div>
-
-                        <form action="" className="w-full px-2 py-2 mt-2">
-                            <div className="flex flex-col items-start justify-center">
-                                <label htmlFor="fullName" className="text-[10px]">Item Name</label>
-                                <input type="text" className="w-full mt-1 border border-gray-400 p-1 rounded-[2px] text-[10px] focus:outline-none focus:border-[#0B2A66]" />
-                            </div>
-
-                            <div className="flex flex-col items-start justify-center mt-3">
-
-                                <label className="text-[10px]">Category</label>
-
-                                <select
-                                    className="w-full mt-1 border border-gray-400 p-1 rounded-[2px] text-[10px] focus:outline-none focus:border-[#0B2A66]"
-                                >
-                                    <option value="dialyzer">Dialyzer</option>
-                                    <option value="blood_tubing">Blood Tubing</option>
-                                    <option value="dialysate">Dialysate</option>
-                                    <option value="medication">Medication</option>
-                                    <option value="needle_access">Needle / Access</option>
-                                    <option value="dressing">Dressing Supplies</option>
-                                    <option value="disinfection">Disinfection</option>
-                                    <option value="consumables">Other Consumables</option>
-                                </select>
-
-                            </div>
-
-                            <div className="flex flex-col items-start justify-center mt-2">
-                                <label htmlFor="fullName" className="text-[10px]">Quantity</label>
-                                <input type="number" className="w-full mt-1 border border-gray-400 p-1 rounded-[2px] text-[10px] focus:outline-none focus:border-[#0B2A66]" />
-                            </div>
-
-                            <div className="flex flex-col items-start justify-center mt-3">
-
-                                <label className="text-[10px]">Unit</label>
-
-                                <select
-                                    className="w-full mt-1 border border-gray-400 p-1 rounded-[2px] text-[10px] focus:outline-none focus:border-[#0B2A66]"
-                                >
-                                    <option value="pieces">Pieces</option>
-                                    <option value="sets">Sets</option>
-                                    <option value="bags">Bags</option>
-                                    <option value="vials">Vials</option>
-                                    <option value="bottles">Bottles</option>
-                                    <option value="rolls">Rolls</option>
-                                    <option value="boxes">Boxes</option>
-                                    <option value="pairs">Pairs</option>
-                                    <option value="ml">mL</option>
-                                    <option value="liters">Liters</option>
-                                    <option value="units">Units</option>
-                                </select>
-
-                            </div>
-
-                            <button className="w-full py-1 bg-[#002060] hover:bg-blue-600 flex items-center justify-center shadow-md text-white text-[10px] mt-4 font-medium">Submit</button>
-                        </form>
-                    </div>
-                </div>
-            )}
-
-            {/* edit consumption */}
-            {openEditConsumption && selectedItem && (
-                <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-                    <div className="bg-white w-[18rem] px-4 py-4 shadow-lg relative flex flex-col items-center justify-center">
-                        <div className="w-full flex items-center justify-between">
-                            <div className="flex items-center justify-center gap-1">
-                                <img src={logo} className="h-9 w-9" />
-                                <h2 className="text-black font-bold text-[12px]">Update Supply Consumption</h2>
-                            </div>
-                            <div onClick={() => setOpenEditConsumption(false)} className="flex items-center justify-center h-5 w-5 hover:bg-gray-300">
-                                <img src={close2} className="h-4 w-4" />
-                            </div>
-                        </div>
-
-                        <form action="" className="w-full px-2 py-2 mt-2">
-                            <div className="flex flex-col items-start justify-center">
-                                <label htmlFor="fullName" className="text-[10px]">Item Name</label>
-                                <input defaultValue={selectedItem.name} type="text" className="w-full mt-1 border border-gray-400 p-1 rounded-[2px] text-[10px] focus:outline-none focus:border-[#0B2A66]" />
-                            </div>
-
-                            <div className="flex flex-col items-start justify-center mt-3">
-
-                                <label className="text-[10px]">Category</label>
-
-                                <select
-                                    defaultValue={selectedItem.category}
-                                    className="w-full mt-1 border border-gray-400 p-1 rounded-[2px] text-[10px] focus:outline-none focus:border-[#0B2A66]"
-                                >
-                                    <option value="dialyzer">Dialyzer</option>
-                                    <option value="blood_tubing">Blood Tubing</option>
-                                    <option value="dialysate">Dialysate</option>
-                                    <option value="medication">Medication</option>
-                                    <option value="needle_access">Needle / Access</option>
-                                    <option value="dressing">Dressing Supplies</option>
-                                    <option value="disinfection">Disinfection</option>
-                                    <option value="consumables">Other Consumables</option>
-                                </select>
-
-                            </div>
-
-                            <div className="flex flex-col items-start justify-center mt-2">
-                                <label htmlFor="fullName" className="text-[10px]">Quantity</label>
-                                <input defaultValue={selectedItem.quantity} type="number" className="w-full mt-1 border border-gray-400 p-1 rounded-[2px] text-[10px] focus:outline-none focus:border-[#0B2A66]" />
-                            </div>
-
-                            <div className="flex flex-col items-start justify-center mt-3">
-                                <label className="text-[10px]">Unit</label>
-                                <select
-                                    defaultValue={selectedItem.unit}
-                                    className="w-full mt-1 border border-gray-400 p-1 rounded-[2px] text-[10px] focus:outline-none focus:border-[#0B2A66]"
-                                >
-                                    <option value="pieces">Pieces</option>
-                                    <option value="sets">Sets</option>
-                                    <option value="bags">Bags</option>
-                                    <option value="vials">Vials</option>
-                                    <option value="bottles">Bottles</option>
-                                    <option value="rolls">Rolls</option>
-                                    <option value="boxes">Boxes</option>
-                                    <option value="pairs">Pairs</option>
-                                    <option value="ml">mL</option>
-                                    <option value="liters">Liters</option>
-                                    <option value="units">Units</option>
-                                </select>
-                            </div>
-
-                            <button className="w-full py-1 bg-[#002060] hover:bg-blue-600 flex items-center justify-center shadow-md text-white text-[10px] mt-4 font-medium">Submit</button>
-                        </form>
-                    </div>
-                </div>
-            )}
-
-            {/* delete  consumption modal */}
-            {openDeleteConsumption && (
-                <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-                    <div className="bg-white w-[18rem] px-4 py-4 shadow-lg relative flex flex-col items-center justify-center">
-                        <div className="w-full flex items-center justify-between">
-                            <div className="flex items-center justify-center gap-1">
-                                <img src={logo} className="h-9 w-9" />
-                                <h2 className="text-black font-bold text-[12px]">Confirm Delete</h2>
-                            </div>
-                            <div onClick={() => setOpenDeleteConsumption(false)} className="flex items-center justify-center h-5 w-5 hover:bg-gray-300">
-                                <img src={close2} className="h-3 w-3" />
-                            </div>
-                        </div>
-
-                        <div className="flex items-center justify-center py-2 w-full mt-2">
-                            <h2 className="font-medium text-[10px] text-black">Are you sure you want to delete this consumption?</h2>
-                        </div>
-
-                        <div onClick={() => setOpenDeleteConsumption(false)} className="flex justify-end gap-2 w-full">
-                            <button className=" py-1 bg-white hover:bg-gray-400 flex items-center justify-center shadow-md rounded-[2px] text-black border border-gray-300 text-[10px] mt-4 px-2">Cancel</button>
-                            <button className=" py-1 bg-red-900 hover:bg-red-500 flex items-center justify-center shadow-md rounded-[2px] text-white text-[10px] mt-4 px-2">Confirm</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* end: dowpdowns and modals */}
-
-        </div>
+      <g>
+        <rect x={x + width / 2 - 65} y={y - 35} width={130} height={24} rx={8} fill="#6366F1" />
+        <text x={x + width / 2} y={y - 18} fill="#fff" textAnchor="middle" fontSize={12} fontWeight={500} > {value} – {payload?.name} – Today </text>
+        <polygon points={` ${x + width / 2 - 6},${y - 11} ${x + width / 2 + 6},${y - 11} ${x + width / 2},${y - 2} `} fill="#6366F1" />
+      </g>
     );
+  };
+
+    return (
+        <div className="w-full min-h-full flex flex-col gap-5 p-8 no-scrollbar mr-5">
+
+            {/* head */}
+            <div className="w-full flex items-center justify-between mt-2 ">
+              <div className="flex items-start justify-center gap-3">
+                  <div className="flex items-center justify-center gap-3 ">
+                      <div className="w-[5px] h-8 bg-green-900 rounded-full"></div>
+                      <div className="flex flex-col items-start justify-center">
+                          <h2 className="text-[11px] font-semibold tracking-[0.1em]">DAILY PATIENT REPORT</h2>
+                          <h2 className="text-[10px] text-[#064e3b] font-semibold tracking-[0.1em]">Summary of 12 patients, treatments, and financial record for April 14, 2026.</h2>
+                      </div>
+                  </div>
+              </div>
+            </div>
+
+            {/* cards */}
+            <div className="w-full  flex items-center justify-start gap-5">
+
+                {/* card 1 */}
+                <div className="flex items-center justify-between px-4 py-3 gap-4 rounded-[14px] bg-[#1b4486] backdrop-blur-2xl border border-[#1b4486]/15 shadow-[0_10px_35px_rgba(0,0,0,0.12)] hover:bg-blue-800 hover:border-white/25 transition-all duration-300 text-white">
+                    <div className="flex items-center justify-center p-3 rounded-xl shadow-lg bg-white/10 backdrop-blur-md border border-white/10">
+                      <CurrencyDollarIcon className="h-6 w-6 text-white" />
+                    </div>
+                    <div className="flex flex-col items-start justify-center leading-tight w-full">
+                      <h2 className="text-[11px] tracking-wide text-white whitespace-nowrap"> SALES TODAY </h2> 
+                      <h2 className="text-[16px] font-semibold tracking-tight text-white whitespace-nowrap"> ₱44, 000.00 </h2> 
+                    </div> 
+                </div>
+
+                {/* card 2 */}
+                <div className="flex items-center justify-between px-4 py-3 gap-4 rounded-[14px] bg-[#0c5148] backdrop-blur-2xl border border-[#0c5148]/15 shadow-[0_10px_35px_rgba(0,0,0,0.12)] hover:bg-green-800 hover:border-white/25 transition-all duration-300 text-white">
+                  <div className="flex items-center justify-center p-3 rounded-xl shadow-lg bg-white/10 backdrop-blur-md  border border-white/10"> 
+                    <CurrencyDollarIcon className="h-6 w-6 text-white" /> 
+                  </div>
+                  <div className="flex flex-col items-start justify-center leading-tight w-full"> 
+                    <h2 className="text-[11px] tracking-wide text-white whitespace-nowrap"> ALL PATIENTS </h2> 
+                    <h2 className="text-[18px] font-semibold tracking-tight text-white whitespace-nowrap"> 12 </h2> 
+                  </div>
+                </div>
+
+                {/* card 3 */}
+                <div className="flex items-center justify-between  px-4 py-3 gap-4 rounded-[14px]  bg-white/30 backdrop-blur-2xl border border-white/15 shadow-[0_10px_35px_rgba(0,0,0,0.12)] hover:bg-green-900/20  hover:border-green-900/20  transition-all duration-300 text-white">
+                  <div className="flex items-center justify-center p-3 rounded-xl shadow-lg bg-white/10 backdrop-blur-md border border-white/10"> 
+                    <CurrencyDollarIcon className="h-6 w-6 text-gray-800" /> 
+                  </div> 
+                  <div className="flex flex-col items-start justify-center leading-tight w-full"> 
+                    <h2 className="text-[11px] tracking-wide text-black whitespace-nowrap"> COMPLETED </h2> 
+                    <h2 className="text-[18px] font-semibold tracking-tight text-black whitespace-nowrap"> 8 </h2> 
+                  </div> 
+                </div>
+
+                {/* card 4 */}
+                <div className="flex items-center justify-between  px-4 py-3 gap-4 rounded-[14px] bg-white/30 backdrop-blur-2xl border border-white/15  shadow-[0_10px_35px_rgba(0,0,0,0.12)]  hover:bg-green-900/20 hover:border-green-900/20 transition-all duration-300 text-white">
+                    <div className="flex items-center justify-center p-3 rounded-xl shadow-lg bg-white/10 backdrop-blur-md  border border-white/10"> 
+                      <CurrencyDollarIcon className="h-6 w-6 text-gray-800" /> 
+                    </div> 
+                    <div className="flex flex-col items-start justify-center leading-tight w-full">
+                      <h2 className="text-[11px] tracking-wide text-black whitespace-nowrap"> IN PROGRESS </h2> 
+                      <h2 className="text-[18px] font-semibold tracking-tight text-black whitespace-nowrap"> 4 </h2> 
+                    </div> 
+                </div>
+
+                {/* card 5 */}
+                <div className="flex items-center justify-between  px-4 py-3 gap-4 rounded-[14px] bg-white/30 backdrop-blur-2xl border border-white/15 shadow-[0_10px_35px_rgba(0,0,0,0.12)] hover:bg-green-900/20 hover:border-green-900/20 transition-all duration-300 text-white">
+                  <div className="flex items-center justify-center p-3 rounded-xl shadow-lg bg-white/10 backdrop-blur-md border border-white/10">
+                    <CurrencyDollarIcon className="h-6 w-6 text-gray-800" />
+                  </div>
+
+                  <div className="flex flex-col items-start justify-center leading-tight w-full"> 
+                    <h2 className="text-[11px] tracking-wide text-black whitespace-nowrap"> SCHEDULED </h2>
+                    <h2 className="text-[18px] font-semibold tracking-tight text-black whitespace-nowrap"> 7 </h2>
+                  </div>
+
+                </div>
+            </div>
+
+            {/* start: main contents */}
+              {/* pie and bar chart */}
+              <div className=" w-full flex items-center justify-center gap-5">
+
+                {/* pie chart */}
+                <div className="flex flex-col items-center justify-start w-1/3 h-[250px] gap-2 rounded-[20px] bg-white/20  backdrop-blur-md border border-white/40 shadow-lg p-4 ">
+                  <div className="w-full flex items-center justify-start gap-3">
+                    <div className="w-1 h-5 bg-green-800 rounded-full"></div>
+                    <h2 className="text-[10px] font-semibold text-gray-800 tracking-wide"> TOTAL SALES  </h2>
+                  </div>
+                  <div className="w-full flex items-center justify-center">
+                    <ResponsiveContainer width="100%" height={160}>
+                      <PieChart>
+
+                        <Pie data={pieData} dataKey="value" nameKey="name" innerRadius={23} outerRadius={58} paddingAngle={3} cornerRadius={6} >
+                          {pieData.map((entry, index) => ( <Cell key={index} fill={PIECOLORS[index % PIECOLORS.length]} /> ))}
+                        </Pie>
+
+                        <Tooltip 
+                            formatter={(value, name) => [ `₱${value.toLocaleString()}`, name, ]}
+                            contentStyle={{ background: "rgba(255, 255, 255, 0.25)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", borderRadius: "12px",  border: "1px solid rgba(255, 255, 255, 0.35)", fontSize: "12px", boxShadow: "0 8px 24px rgba(0,0,0,0.08)", color: "#000", }}
+                            itemStyle={{ color: "#000", }}
+                            labelStyle={{ color: "#000", fontWeight: 500, }}
+                            cursor={{ fill: "rgba(59,130,246,0.08)" }} 
+                        />
+
+                        <Legend
+                          layout="horizontal"
+                          verticalAlign="bottom"
+                          align="center"
+                          iconType="circle"
+                          wrapperStyle={{ fontSize: "10px", paddingTop: "10px", transform: "translateY(17px)", color: "#000",  }}
+                          formatter={(value) => ( <span style={{ color: "#000" }}>{value}</span> )}
+                        />
+
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                </div>
+
+                {/* bar chart */}
+                <div className="relative flex items-center justify-between w-2/3 h-[250px] rounded-[25px] bg-white/10 backdrop-blur-xl border border-white/25 shadow-lg px-4 overflow-hidden">
+                  <div className="absolute top-4 left-18 flex items-center  py-2 px-3 rounded-full bg-white/10 backdrop-blur-xl border border-white/25 shadow-lg">
+                    <h2 className="text-[10px] font-semibold text-gray-800 tracking-[0.1em]">
+                      CONSUMPTION SUPPLY SETS
+                    </h2>
+                  </div>
+                  <div className="h-full left-3  w-[50px] z-10 py-4">
+                    <div className="h-full bg-blue-900 backdrop-blur-md border border-indigo-500/30 rounded-full shadow-lg flex flex-col justify-between items-center px-2 py-3 text-white text-[10px] font-medium">
+                      <div>{maxToday}</div>
+                      <div>{Math.round(maxToday * 0.8)}</div>
+                      <div>{Math.round(maxToday * 0.6)}</div>
+                      <div>{Math.round(maxToday * 0.4)}</div>
+                      <div>{Math.round(maxToday * 0.2)}</div>
+                      <div>0</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-center w-full  h-[260px] rounded-[25px] px-4 py-2">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={data}
+                        barCategoryGap="25%"
+                        barGap={6}
+                        margin={{ top: 40 }}
+                        onMouseMove={(state) => {
+                          if (!state.isTooltipActive) return;
+                          const d = state.activePayload?.[0]?.payload;
+                          if (!d) return;
+                          setActive({ x: state.chartX, value: d.today, name: d.name, });
+                        }}
+                        onMouseLeave={() => setActive(null)}
+                      >
+
+                        <Tooltip
+                          formatter={(value, name) => [ `${value.toLocaleString()}`, name, ]}
+                          contentStyle={{ background: "rgba(255,255,255,0.25)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.35)", fontSize: "12px", boxShadow: "0 8px 20px rgba(0,0,0,0.08)", color: "#000", }}
+                          itemStyle={{ color: "#000" }}
+                          labelStyle={{ color: "#000", fontWeight: 500 }}
+                          cursor={{ fill: "rgba(0,0,0,0.05)" }}
+                        />
+
+                        <Legend
+                          verticalAlign="top"
+                          align="center"
+                          iconType="circle"
+                          wrapperStyle={{ fontSize: 11, paddingBottom: 10 }}
+                        />
+
+                        <XAxis
+                          dataKey="name"
+                          axisLine={{ stroke: "#94989e", strokeWidth: 1 }} 
+                          tickLine={false}
+                          tick={{ fontSize: 10, fill: "#505868" }}
+                        />
+
+                        <YAxis hide domain={[0, maxToday]} />
+
+                        <Bar
+                          dataKey="today"
+                          fill="#0c5148"
+                          radius={[999, 999, 999, 999]}
+                          barSize={17}
+                        >
+                          <LabelList content={<ActiveLabel />} />
+                        </Bar>
+
+                        <Bar
+                          dataKey="yesterday"
+                          fill="#1b4486"
+                          radius={[999, 999, 999, 999]}
+                          barSize={17}
+                        />
+
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+
+              {/* table and line chart */}
+              <div className="w-full h-[15.5rem] flex items-center justify-between gap-5 ">
+
+                {/* table */}
+                <div className="w-2/3 h-full rounded-[25px] bg-white/10 backdrop-blur-md border border-white/20 shadow-lg p-4 flex flex-col">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-1 h-5 bg-green-800 rounded-full"></div>
+                    <h2 className="text-[10px] font-semibold  text-black tracking-[0.1em]"> DAILY CONSUMPTION SUPPLIES </h2>
+                  </div>
+                  <div className="w-full grid grid-cols-3 text-[10px] font-medium tracking-[0.1em] text-white bg-[#0c5148] flex items-center rounded-[3px] justify-center shadow-xl py-2 place-items-center text-center">
+                    <div>NAME</div>
+                    <div>TIME</div>
+                    <div >STATUS</div>
+                  </div>
+                  <div className="flex flex-col gap-1 text-[10px] text-gray-800 overflow-y-auto custom-scrollbar gap-2 text-[9px] px-3 mt-2">
+                    {[
+                      { name: "JUAN DELA CRUZ", time: "08:00", status: "Completed" },
+                      { name: "Maria Santos", time: "08:30", status: "Completed" },
+                      { name: "Roberto Garcia", time: "09:00", status: "Completed" },
+                      { name: "Rosa Reyes", time: "09:30", status: "Completed" },
+                      { name: "Miguel Ramos", time: "10:00", status: "Completed" },
+                      { name: "Jennifer Torres", time: "10:30", status: "Completed" },
+                      { name: "William Cruz", time: "11:00", status: "Completed" },
+                      { name: "Elena Mendoza", time: "11:30", status: "Completed" },
+                    ].map((item, i) => (
+                      <div key={i} className="w-full grid grid-cols-3 items-center text-center  hover:bg-green-900/20 hover:border-green-900/20 transition rounded-[12px] px-3 py-2 ">
+                        <div className="font-medium">{item.name}</div>
+                        <div className="text-gray-600">{item.time}</div>
+                        <div className="flex items-center justify-center gap-2">
+                          <span className="text-green-900 font-semibold bg-green-900/40 !text-[9px] backdrop-blur-md border border-white/20 shadow-lg py-1 px-3 rounded-full">{item.status}</span>
+                        </div>
+                      </div>
+                    ))}
+
+                  </div>
+                </div>
+                
+                {/* line chart */}
+                <div className="w-1/2 flex flex-col items-center justify-between gap-2">
+                  <div className="relative w-full h-full py-4 px-5 rounded-[25px] bg-white/10 backdrop-blur-xl border border-white/25 shadow-lg overflow-hidden">
+                    <div className="relative z-10 flex items-center justify-between mb-5">
+                      <div className="flex items-center justify-center gap-3">
+                        <div className="w-1 h-5 bg-green-800 rounded-full"></div>
+                        <h2 className="text-[10px] font-semibold text-gray-800 tracking-wide"> TOTAL SALES </h2>
+                      </div>
+                      <div className="flex items-center gap-3 text-[10px] text-gray-700">
+                        <div className="flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-full bg-[#064e3b]"></span> Today
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-full bg-[#0c4a6e]"></span> Yesterday
+                        </div>
+                      </div>
+                    </div>
+                    <div className="relative z-10 w-full h-[180px]">
+                      <ResponsiveContainer width="100%" height="100%"> 
+                        <AreaChart data={linedata}> 
+                          <defs> 
+                            <linearGradient id="todayFill" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#064e3b" stopOpacity={0.95} />
+                              <stop offset="40%" stopColor="#065f46" stopOpacity={0.75} />
+                              <stop offset="100%" stopColor="#022c22" stopOpacity={0.2} />
+                            </linearGradient>
+
+                            <linearGradient id="yesterdayFill" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#0c4a6e" stopOpacity={0.95} />
+                              <stop offset="40%" stopColor="#075985" stopOpacity={0.75} />
+                              <stop offset="100%" stopColor="#082f49" stopOpacity={0.2} />
+                            </linearGradient>
+                          </defs>
+
+                          <CartesianGrid
+                            strokeDasharray="3 3"
+                            stroke="rgba(255,255,255,0.12)"
+                            vertical={false}
+                          />
+
+                          <XAxis
+                            dataKey="time"
+                            stroke="#6b7280"
+                            tick={{ fontSize: 10, fill: "#6b7280" }}
+                            axisLine={{ stroke: "rgba(0,0,0,0.08)" }}
+                            tickLine={false}
+                          />
+
+                          <YAxis
+                            stroke="#6b7280"
+                            tick={{ fontSize: 10, fill: "#6b7280" }}
+                            axisLine={false}
+                            tickLine={false}
+                          />
+  
+                          <Tooltip
+                            contentStyle={{ background: "rgba(255,255,255,0.25)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", borderRadius: "14px", border: "1px solid rgba(255,255,255,0.35)", fontSize: "12px", color: "#000", boxShadow: "0 12px 30px rgba(0,0,0,0.12)",  }}
+                            itemStyle={{ color: "#000" }}
+                            labelStyle={{ color: "#000", fontWeight: 600 }}
+                            cursor={{ stroke: "rgba(6,78,59,0.25)", strokeWidth: 1 }}
+                          />
+  
+                          <Area
+                            type="monotone"
+                            dataKey="today"
+                            stroke="#064e3b"
+                            strokeWidth={2.8}
+                            fill="url(#todayFill)"
+                          />
+  
+                          <Area
+                            type="monotone"
+                            dataKey="yesterday"
+                            stroke="#0c4a6e"
+                            strokeWidth={2.5}
+                            fill="url(#yesterdayFill)"
+                          />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* consumtptions */}
+              <div className="w-full grid grid-cols-2 flex items-center justify-center gap-5 ">
+
+                {/* supplies consumption */}
+                <div className="w-full  rounded-2xl bg-white/10 backdrop-blur-2xl border border-white/20 shadow-xl p-4"> 
+                  <div className="flex item-center justify-start px-4 bg-[#0c5148] py-2 shadow-xl rounded-[3px] mb-2 gap-3">
+                    <div className="w-1 h-5 bg-white rounded-full"></div>
+                    <h2 className="text-[10px] font-semibold  text-white tracking-[0.1em] mt-1"> DAILY CONSUMPTION SUPPLIES </h2>
+                  </div> 
+                  <div className="flex grid grid-cols-2 items-start justify-center gap-3 h-[260px] overflow-y-auto  mt-4 custom-scrollbar">
+
+                      <div className="h-[50px] w-[230px] flex items-center justify-between rounded-[15px]  bg-white/20 backdrop-blur-xl border border-white/25 shadow-lg px-4 py-2 hover:bg-green-900/40 hover:border-green-900/40">
+                        <div className="flex items-center justify-center gap-3">
+                          <div className="flex items-center justify-center bg-red-900 p-2 rounded-full gap-3">
+                            <CurrencyDollarIcon className="h-5 w-5 text-white" />
+                          </div>
+                          <div className="flex flex-col items-start justify-center">
+                              <h2 className="text-black font-semibold text-[10px] tracking-[0.1em]">High-flux Dialyze</h2>
+                              <h2 className="text-gray-700 font-semibold text-[8px] tracking-[0.1em]">Dialyzer</h2>
+                            </div>
+                        </div>
+
+                          <div className="flex flex-col items-center justify-center">
+                            <h2 className="text-black font-semibold text-[10px] tracking-[0.1em] text-center">12</h2>
+                            <h2 className="text-gray-700 font-semibold text-[8px] tracking-[0.1em] text-center">pieces</h2>
+                          </div>
+                      </div>
+                      
+                  </div> 
+                </div> 
+
+                {/*  sales */}
+                <div className="w-full rounded-2xl bg-white/10 backdrop-blur-2xl border border-white/20 shadow-xl p-4"> 
+                  <div className="flex item-center justify-start px-4 bg-[#0c5148] py-2 shadow-xl rounded-[3px] mb-2 gap-3">
+                    <div className="w-1 h-5 bg-white rounded-full"></div>
+                    <h2 className="text-[10px] font-semibold  text-white tracking-[0.1em] mt-1"> TOTAL DAILY SALES - SUPPLIES CONSUMPTION </h2>
+                  </div> 
+
+                  <div className="flex item-center justify-center grid grid-cols-2 gap-4 h-[260px] overflow-y-auto px-3 mt-4 custom-scrollbar"> 
+                    
+
+                     <div className="h-[110px] flex flex-col items-center justify-center gap-2 rounded-[15px]   bg-white/20 backdrop-blur-xl border border-white/25 shadow-lg p-4 hover:bg-green-900/40 hover:border-green-900/20">
+                      <div className="w-full flex items-center justify-between gap-2">
+                        <div className="flex items-center justify-center bg-red-900 p-2 rounded-full ">
+                          <CurrencyDollarIcon className="h-5 w-5 text-white" />
+                        </div>
+                        <div className="flex flex-col items-end justify-end">
+                          <h2 className="text-black font-semibold text-[10px] tracking-[0.1em] text-left">High-flux Dialyzer</h2>
+                          <h2 className="text-gray-700 font-medium text-[10px] tracking-[0.1em] text-left">12 pieces</h2>
+                        </div>
+                      </div>
+
+                      <div className="w-full flex items-center justify-between">
+                        
+                          <h2 className="text-gray-700 font-medium text-[10px] tracking-[0.1em] text-left">Dialyzer</h2>
+                          <div className="w-1 h-1 rounded-full bg-[#0c5148]"></div>
+                          <h2 className="text-gray-700 font-medium text-[10px] tracking-[0.1em] text-left">₱1, 200.00 per piece</h2>
+                      </div>
+
+                      <div className="w-full flex items-center justify-between ">
+                        
+                          <h2 className="text-gray-700 font-medium text-[9px] tracking-[0.1em] text-left">TOTAL COST</h2>
+                          <h2 className="text-[#0c5148] font-semibold text-[12px] tracking-[0.1em] text-left">₱15, 200.00 </h2>
+                      </div>
+                      
+                      
+                    </div>
+
+                     
+                  </div>
+                </div>
+              </div>
+            {/* end:main contents */}
+        </div>
+    )
 }
