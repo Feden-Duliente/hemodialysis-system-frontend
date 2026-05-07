@@ -1,11 +1,22 @@
 import { useState } from "react";
-import { createPortal } from "react-dom";
-import { ChevronUpIcon, CurrencyDollarIcon, XMarkIcon ,UserIcon ,CheckCircleIcon ,
+import {
+  ChevronUpIcon,
+  CurrencyDollarIcon,
+  AcademicCapIcon,
+  XMarkIcon,
+  UserIcon,
+  CheckCircleIcon,
+  MagnifyingGlassIcon,
   HomeIcon,
   BeakerIcon,
   IdentificationIcon,
-  CalendarDaysIcon, 
+  CalendarDaysIcon,
   ClipboardDocumentListIcon,
+  UserGroupIcon,
+  CalendarIcon,
+  ArrowPathIcon,
+  ClockIcon,
+  PlayCircleIcon,
 } from "@heroicons/react/24/solid";
 import {
   Package,
@@ -26,864 +37,471 @@ import {
   YAxis,
   Tooltip,
   LabelList,
-  Legend,PieChart, Pie, Cell,
+  Legend,
+  PieChart,
+  Pie,
+  Cell,
   LineChart,
   Line,
   CartesianGrid,
 } from "recharts";
-import wanglin from "../assets/wangLin.png"
-
-
-const getIcon = (type) => {
-  switch (type) {
-    case "dialyzer":
-      return <Package className="w-3 h-3 text-blue-900" />;
-    case "tubing":
-      return <Droplets className="w-3 h-3 text-blue-900" />;
-    case "medication":
-      return <Pill className="w-3 h-3 text-blue-900" />;
-    default:
-      return <Scissors className="w-3 h-3 text-blue-900" />;
-  }
-};
-
-
-
-const rawData = [
-  { name: "Dialyzer", today: 18, yesterday: 14 },
-  { name: "Tubing", today: 22, yesterday: 26 },
-  { name: "Dialysate", today: 70, yesterday: 58 },
-  { name: "Heparin", today: 16, yesterday: 10 },
-  { name: "Saline", today: 38, yesterday: 30 },
-  { name: "Needle", today: 42, yesterday: 28 },
-  { name: "Gauze", today: 120, yesterday: 23 },
-  { name: "Tape", today: 20, yesterday: 16 },
-];
-
-const pieData = [
-  { name: "Dialyzer", value: 500 },
-  { name: "Tubing", value: 300 },
-  { name: "Dialysate", value: 700 },
-  { name: "Heparin", value: 200 },
-  { name: "Saline", value: 150 },
-  { name: "Needle", value: 100 },
-  { name: "Gauze", value: 80 },
-  { name: "Tape", value: 60 },
-];
-
-const PIECOLORS = [
-  "#052e1f", 
-  "#064e3b", 
-  "#065f46", 
-  "#047857", 
-  "#10b981", 
-  "#34d399", 
-  "#6ee7b7", 
-  "#d1fae5", 
-];
-
-const COLORS = ["#0c5148", "#1b4486", "#bd7d0f", "#b80f0f"];
-
-const linedata = [
-  { time: "9AM", today: 1020, yesterday: 980 },
-  { time: "9:30AM", today: 1280, yesterday: 1120 },
-  { time: "10AM", today: 1900, yesterday: 1450 },
-  { time: "10:30AM", today: 2300, yesterday: 1750 },
-  { time: "11AM", today: 2650, yesterday: 2050 },
-  { time: "11:30AM", today: 2480, yesterday: 2200 },
-  { time: "12PM", today: 3200, yesterday: 2700 },
-  { time: "12:30PM", today: 3050, yesterday: 2550 },
-  { time: "1PM", today: 2920, yesterday: 2400 },
-  { time: "1:15PM", today: 2700, yesterday: 2250 },
-  { time: "1:30PM", today: 2550, yesterday: 2100 },
-  { time: "1:45PM", today: 2900, yesterday: 2350 },
-  { time: "2PM", today: 4200, yesterday: 3150 },
-];
-
-const CustomTooltip = ({ active, payload, label }) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-white/80 backdrop-blur-md border border-white/30 shadow-lg rounded-[12px] px-3 py-2 text-[11px]">
-        <p className="font-semibold text-gray-700 mb-1">{label}</p>
-        <p className="text-[#0c5148]">Today: ₱{payload[0].value}</p>
-        <p className="text-gray-500">Yesterday: ₱{payload[1].value}</p>
-      </div>
-    );
-  }
-  return null;
-
-  
-};
-
-
-function AvatarTooltip({ patient, children }) {
-  const [show, setShow] = useState(false);
-  const [pos, setPos] = useState({ x: 0, y: 0 });
-
-  return (
-    <>
-      <div
-        className="relative"
-        onMouseEnter={(e) => {
-          const rect = e.currentTarget.getBoundingClientRect();
-          setPos({
-            x: rect.left + rect.width / 2,
-            y: rect.top
-          });
-          setShow(true);
-        }}
-        onMouseLeave={() => setShow(false)}
-      >
-        {children}
-      </div>
-
-      {show &&
-        createPortal(
-          <div
-            className="fixed z-[99999] px-3 py-2 rounded-lg bg-white/80 backdrop-blur-xl text-[10px] shadow-lg border border-white/40 pointer-events-none"
-            style={{
-              left: pos.x,
-              top: pos.y,
-              transform: "translate(-50%, -120%)"
-            }}
-          >
-            <div className="font-medium">{patient.name}</div>
-            <div className="text-gray-600">{patient.status}</div>
-          </div>,
-          document.body
-        )}
-    </>
-  );
-}
-
-
+import { useDashboard } from "../context/DashboardContext";
 
 export default function Schedules() {
-  const [openDownload, setOpenDownload] = useState(false);
-    
-  const [active, setActive] = useState(null);
+  const [search, setSearch] = useState("");
+  const [openSearchStaff, setOpenSearchStaff] = useState(false);
+  const { groupedStaff, stats } = useDashboard();
 
-  const maxToday = Math.max(...rawData.map(d => d.today || 0));
+  const parseShiftTime = (timeStr) => {
+    if (!timeStr) {
+      return {
+        startTime: "-",
+        endTime: "-",
+        startDate: null,
+        endDate: null,
+      };
+    }
 
-  const data = rawData.map(d => ({ ...d, isMax: d.today === maxToday, }));
+    const [startRaw, endRaw] = timeStr.split(" - ");
 
-  const ActiveLabel = ({ x, y, width, value, payload }) => {
-    if (!payload?.isMax) return null;
-    
+    const parse12hToDate = (t) => {
+      if (!t) return null;
 
-    return (
-      <g>
-        <rect x={x + width / 2 - 65} y={y - 35} width={130} height={24} rx={8} fill="#6366F1" />
-        <text x={x + width / 2} y={y - 18} fill="#fff" textAnchor="middle" fontSize={12} fontWeight={500} > {value} – {payload?.name} – Today </text>
-        <polygon points={` ${x + width / 2 - 6},${y - 11} ${x + width / 2 + 6},${y - 11} ${x + width / 2},${y - 2} `} fill="#6366F1" />
-      </g>
-    );
+      let [time, modifier] = t.trim().split(" ");
+      let [hours, minutes] = time.split(":").map(Number);
+
+      if (modifier === "PM" && hours !== 12) hours += 12;
+      if (modifier === "AM" && hours === 12) hours = 0;
+
+      const date = new Date();
+      date.setHours(hours, minutes, 0, 0);
+
+      return date;
+    };
+
+    const formatTime = (t) =>
+      new Date(`1970-01-01T${t.replace(/ AM| PM/, "")}`).toLocaleTimeString(
+        "en-US",
+        {
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        },
+      );
+
+    return {
+      startTime: startRaw ? formatTime(startRaw) : "-",
+      endTime: endRaw ? formatTime(endRaw) : "-",
+      startDate: parse12hToDate(startRaw),
+      endDate: parse12hToDate(endRaw),
+    };
   };
 
-    return (
-        <div className="w-full min-h-full flex flex-col gap-5 p-8 no-scrollbar items-center">
+  const getShiftStatus = (startDate, endDate, now = new Date()) => {
+    if (!startDate || !endDate) return "UPCOMING";
 
-            {/* head */}
-            <div className="w-full flex items-center justify-between mt-2 ">
-              <div className="flex items-start justify-center gap-3">
-                  <div className="flex items-center justify-center gap-3 ">
-                      <div className="w-[5px] h-8 bg-green-900 rounded-full"></div>
-                      <div className="flex flex-col items-start justify-center">
-                          <h2 className="text-[11px] font-semibold tracking-[0.1em]">Staff Shifting Schedule</h2>
-                          <h2 className="text-[10px] text-[#064e3b] font-semibold tracking-[0.1em]">Maximum 4 shifts per staff, 3 patients per shift.</h2>
-                      </div>
+    if (now >= startDate && now <= endDate) return "ONGOING";
+    if (now > endDate) return "COMPLETED";
+
+    return "UPCOMING";
+  };
+
+  //  for staff profile color if no image
+  const stringToColor = (str = "") => {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+
+    const colors = [
+      "#1b4486",
+      "#0c5148",
+      "#b80f0f",
+      "#bd7d0f",
+      "#6b21a8",
+      "#0ea5e9",
+      "#f97316",
+    ];
+
+    return colors[Math.abs(hash) % colors.length];
+  };
+
+  // searching and filtering
+  const filteredStaffs = groupedStaff.filter((staff) => {
+    const term = search.toLowerCase().trim();
+
+    const fullName = [
+      staff.employee?.firstName,
+      staff.employee?.middleName,
+      staff.employee?.lastName,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+
+    const code = (staff.employee?.code || "").toLowerCase();
+
+    return fullName.includes(term) || code.includes(term);
+  });
+
+  return (
+    <div className="w-full min-h-full flex flex-col gap-5 p-8 no-scrollbar items-start justify-start">
+      {/* head */}
+      <div className="w-full flex items-center justify-between mt-2 ">
+        <div className="flex items-start justify-center gap-3">
+          <div className="flex items-center justify-center gap-3 ">
+            <div className="flex flex-col items-start justify-center">
+              <h2 className="text-[12px] font-semibold  uppercase">
+                Staff Shifting Schedule
+              </h2>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* cards */}
+      <div className="w-full flex items-center justify-start gap-5">
+        {/* card 1 */}
+        <div
+          className="relative flex items-center justify-between px-4 py-4 gap-3 rounded-[5px] 
+    bg-gradient-to-br from-white/40 via-white/20 to-white/10 
+    backdrop-blur-2xl border border-gray-200
+    shadow-[0_8px_30px_rgba(0,0,0,0.12)] overflow-hidden group"
+        >
+          <div
+            className="flex items-center justify-center p-2 rounded-lg 
+      bg-white/30 border border-white/20 shadow-inner"
+          >
+            <AcademicCapIcon className="h-7 w-7 text-blue-700" />
+          </div>
+
+          <div className="flex flex-col items-start justify-center leading-tight w-full">
+            <h2 className="text-[9px] tracking-[0.15em] font-semibold text-gray-600 uppercase">
+              {" "}
+              STAFF MEMBERS
+            </h2>
+            <h2 className="text-[15px] font-semibold text-gray-900">
+              {stats.staffMembers}
+            </h2>
+          </div>
+        </div>
+
+        {/* card 2 */}
+        <div
+          className="relative flex items-center justify-between px-4 py-4 gap-3 rounded-[5px] 
+    bg-gradient-to-br from-white/40 via-white/20 to-white/10 
+    backdrop-blur-2xl border border-gray-200
+    shadow-[0_8px_30px_rgba(0,0,0,0.12)] overflow-hidden group"
+        >
+          <div
+            className="flex items-center justify-center p-2 rounded-lg 
+      bg-white/30 border border-white/20 shadow-inner"
+          >
+            <UserGroupIcon className="h-7 w-7 text-gray-700" />
+          </div>
+
+          <div className="flex flex-col items-start justify-center leading-tight w-full">
+            <h2 className="text-[9px] tracking-[0.15em] font-semibold text-gray-600 uppercase">
+              All Patients
+            </h2>
+            <h2 className="text-[15px] font-semibold text-gray-900">
+              {stats.totalPatients}
+            </h2>
+          </div>
+        </div>
+
+        {/* card 3 */}
+        <div
+          className="relative flex items-center justify-between px-4 py-4 gap-3 rounded-[5px] 
+    bg-gradient-to-br from-white/40 via-white/20 to-white/10 
+    backdrop-blur-2xl border border-gray-200
+    shadow-[0_8px_30px_rgba(0,0,0,0.12)] overflow-hidden group"
+        >
+          <div
+            className="flex items-center justify-center p-2 rounded-lg 
+      bg-white/30 border border-white/20 shadow-inner"
+          >
+            <CheckCircleIcon className="h-7 w-7 text-green-700" />
+          </div>
+
+          <div className="flex flex-col items-start justify-center leading-tight w-full">
+            <h2 className="text-[9px] tracking-[0.15em] font-semibold text-gray-600 uppercase">
+              Completed
+            </h2>
+            <h2 className="text-[15px] font-semibold text-gray-900">
+              {stats.completed}
+            </h2>
+          </div>
+        </div>
+
+        {/* card 4 */}
+        <div
+          className="relative flex items-center justify-between px-4 py-4 gap-3 rounded-[5px] 
+    bg-gradient-to-br from-white/40 via-white/20 to-white/10 
+    backdrop-blur-2xl border border-gray-200
+    shadow-[0_8px_30px_rgba(0,0,0,0.12)] overflow-hidden group"
+        >
+          <div
+            className="flex items-center justify-center p-2 rounded-lg 
+      bg-white/30 border border-white/20 shadow-inner"
+          >
+            <ClockIcon className="h-7 w-7 text-yellow-700" />
+          </div>
+
+          <div className="flex flex-col items-start justify-center leading-tight w-full">
+            <h2 className="text-[9px] font-semibold tracking-[0.15em] text-gray-600 uppercase">
+              ONGOING
+            </h2>
+            <h2 className="text-[15px] font-semibold text-gray-900">
+              {stats.ongoing}
+            </h2>
+          </div>
+        </div>
+
+        {/* card 5 */}
+        <div
+          className="relative flex items-center justify-between px-4 py-4 gap-3 rounded-[5px] 
+    bg-gradient-to-br from-white/40 via-white/20 to-white/10 
+    backdrop-blur-2xl border border-gray-200
+    shadow-[0_8px_30px_rgba(0,0,0,0.12)] overflow-hidden group"
+        >
+          <div
+            className="flex items-center justify-center p-2 rounded-lg 
+      bg-white/30 border border-white/20 shadow-inner"
+          >
+            <CalendarDaysIcon className="h-7 w-7 text-blue-700" />
+          </div>
+
+          <div className="flex flex-col items-start justify-center leading-tight w-full">
+            <h2 className="text-[9px] tracking-[0.15em] text-gray-600 uppercase font-semibold">
+              Scheduled
+            </h2>
+
+            <h2 className="text-[15px] font-semibold text-gray-900">5</h2>
+          </div>
+        </div>
+      </div>
+
+      <div className="w-full flex items-center justify-between mt-2">
+        <div className="w-1/2 flex items-center gap-2">
+          <h2 className="text-[12px] font-semibold text-gray-800 capitalize uppercase">
+            staff adn patient schedules
+          </h2>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <div
+            onClick={() => setOpenSearchStaff(true)}
+            className="flex items-center justify-center py-1 px-4 rounded-[5px] bg-blue-500 border-[1px] border-gray-900/10 hover:bg-blue-300 hover:border-white/10 cursor-pointer"
+          >
+            <h2 className="text-[10px] font-medium text-white tracking-[0.1em]">
+              {" "}
+              SEARCH{" "}
+            </h2>
+            <MagnifyingGlassIcon className="w-3 h-3 ml-2 text-white" />
+          </div>
+
+          {openSearchStaff && (
+            <input
+              autoFocus
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Staff name..."
+              className="text-[10px] font-medium rounded-[5px] border border-[#1b4486]/20  px-3 py-1 outline-none transition-all duration-300 ease-in-out w-48"
+            />
+          )}
+        </div>
+      </div>
+
+      {/* start: main contents */}
+      <div className="w-full flex flex-col gap-4">
+        {filteredStaffs.map((staff, index) => (
+          <div
+            key={staff.employeeId || `staff-${index}`}
+            className="w-full rounded-[5px] 
+      bg-white/10 backdrop-blur-xl border-[1px] border-gray-200 shadow-lg
+      overflow-hidden"
+          >
+            <div
+              className="flex items-center justify-between px-5 py-4 
+        border-b border-white/30
+        bg-gradient-to-r from-white/40 to-white/10"
+            >
+              <div className="flex items-center gap-3">
+                {staff.employee?.profileImage ? (
+                  <img
+                    src={staff.employee.profileImage}
+                    className="w-12 h-12 rounded-full object-cover border border-white/40 shadow-sm"
+                  />
+                ) : (
+                  <div
+                    className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold shadow"
+                    style={{
+                      backgroundColor: stringToColor(
+                        staff.employee?.firstName || "",
+                      ),
+                    }}
+                  >
+                    {staff.employee?.firstName?.charAt(0).toUpperCase()}
                   </div>
+                )}
+
+                <div className="flex flex-col">
+                  <h2 className="font-semibold text-[14px] text-gray-900">
+                    {staff.employee?.firstName +
+                      " " +
+                      (staff.employee?.middleName
+                        ? staff.employee.middleName + ". "
+                        : "") +
+                      staff.employee?.lastName}
+                  </h2>
+
+                  <div className="flex gap-2 mt-1">
+                    {/* <span className="text-[10px] bg-purple-500/10 text-purple-700 px-2 py-[2px] rounded-md font-medium">
+                {staff.employee?.role}
+              </span> */}
+                    <span className="text-[12px] font-medium text-gray-500">
+                      ID: {staff.employee?.code}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <div className="text-[12px] flex gap-2 bg-blue-500/10 text-blue-700 px-4 py-1 border border-gray-200 rounded-[5px] font-semibold">
+                  <CalendarDaysIcon className="w-4 h-4" />
+                  {new Set(staff?.shifts?.map((s) => s.shiftId)).size || 0}{" "}
+                  Shifts
+                </div>
+
+                <div className="text-[12px] bg-green-500/10 flex gap-2 text-green-700 px-4 py-1 border border-gray-200 rounded-[5px] font-semibold">
+                  <UserGroupIcon className="w-4 h-4" />
+                  {staff.shifts?.reduce(
+                    (t, s) => t + (s.patients?.length || 0),
+                    0,
+                  )}{" "}
+                  Patients
+                </div>
               </div>
             </div>
 
-            {/* cards */}
-            <div className="w-full  flex items-center justify-start gap-5">
+            <div className="p-4 flex flex-col gap-2">
+              {Object.values(
+                staff.shifts.reduce((acc, shift) => {
+                  const hour = parseInt(
+                    shift.time.split(" - ")[0].split(":")[0],
+                    10,
+                  );
 
-                {/* card 1 */}
-                <div className="flex items-center justify-between px-4 py-3 gap-4 rounded-[14px] bg-[#1b4486] backdrop-blur-2xl border border-[#1b4486]/15 shadow-[0_10px_35px_rgba(0,0,0,0.12)] hover:bg-blue-800 hover:border-white/25 transition-all duration-300 text-white">
-                    <div className="flex items-center justify-center p-3 rounded-xl shadow-lg bg-white/10 backdrop-blur-md border border-white/10">
-                      <CurrencyDollarIcon className="h-6 w-6 text-white" />
-                    </div>
-                    <div className="flex flex-col items-start justify-center leading-tight w-full">
-                        <h2 className="text-[16px] font-semibold tracking-tight text-white whitespace-nowrap">4</h2> 
-                        <h2 className="text-[11px] tracking-wide text-white whitespace-nowrap"> Staff Members </h2>
-                    </div> 
-                </div>
+                  const label =
+                    hour < 12
+                      ? "Morning Shift"
+                      : hour < 18
+                        ? "Afternoon Shift"
+                        : "Evening Shift";
 
-                {/* card 2 */}
-                <div className="flex items-center justify-between px-4 py-3 gap-4 rounded-[14px] bg-[#0c5148] backdrop-blur-2xl border border-[#0c5148]/15 shadow-[0_10px_35px_rgba(0,0,0,0.12)] hover:bg-green-800 hover:border-white/25 transition-all duration-300 text-white">
-                  <div className="flex items-center justify-center p-3 rounded-xl shadow-lg bg-white/10 backdrop-blur-md  border border-white/10"> 
-                    <CurrencyDollarIcon className="h-6 w-6 text-white" /> 
-                  </div>
-                  <div className="flex flex-col items-start justify-center leading-tight w-full"> 
-                        <h2 className="text-[16px] font-semibold tracking-tight text-white whitespace-nowrap">13 / 16</h2> 
-                        <h2 className="text-[11px] tracking-wide text-white whitespace-nowrap"> Total Shifts </h2>
-                    </div>
-                </div>
+                  const key = `${label}-${shift.shiftName}-${shift.time}`;
 
-                {/* card 3 */}
-                <div className="flex items-center justify-between  px-4 py-3 gap-4 rounded-[14px]  bg-white/30 backdrop-blur-2xl border border-white/15 shadow-[0_10px_35px_rgba(0,0,0,0.12)] hover:bg-green-900/20  hover:border-green-900/20  transition-all duration-300 text-white">
-                  <div className="flex items-center justify-center p-3 rounded-xl shadow-lg bg-white/10 backdrop-blur-md border border-white/10"> 
-                    <CurrencyDollarIcon className="h-6 w-6 text-gray-800" /> 
-                  </div> 
-                  <div className="flex flex-col items-start justify-center leading-tight w-full"> 
-                        <h2 className="text-[16px] font-semibold tracking-tight text-black whitespace-nowrap">39</h2> 
-                        <h2 className="text-[11px] tracking-wide text-black whitespace-nowrap"> Total Patiests </h2>
-                    </div> 
-                </div>
+                  if (!acc[key]) {
+                    acc[key] = {
+                      ...shift,
+                      patients: [...shift.patients],
+                      label,
+                    };
+                  } else {
+                    acc[key].patients.push(...shift.patients);
+                  }
 
-                {/* card 4 */}
-                <div className="flex items-center justify-between  px-4 py-3 gap-4 rounded-[14px] bg-white/30 backdrop-blur-2xl border border-white/15  shadow-[0_10px_35px_rgba(0,0,0,0.12)]  hover:bg-green-900/20 hover:border-green-900/20 transition-all duration-300 text-black">
-                    <div className="flex items-center justify-center p-3 rounded-xl shadow-lg bg-white/10 backdrop-blur-md  border border-white/10"> 
-                      <CurrencyDollarIcon className="h-6 w-6 text-gray-800" /> 
-                    </div> 
-                    <div className="flex flex-col items-start justify-center leading-tight w-full">
-                        <h2 className="text-[16px] font-semibold tracking-tight text-black whitespace-nowrap">28</h2> 
-                        <h2 className="text-[11px] tracking-wide text-black whitespace-nowrap"> Completed</h2>
-                    </div> 
-                </div>
+                  return acc;
+                }, {}),
+              ).map((shift, idx) => {
+                const { startTime, endTime, startDate, endDate } =
+                  parseShiftTime(shift.time);
+                const status = getShiftStatus(startDate, endDate);
 
-                {/* card 5 */}
-                <div className="flex items-center justify-between  px-4 py-3 gap-4 rounded-[14px] bg-white/30 backdrop-blur-2xl border border-white/15 shadow-[0_10px_35px_rgba(0,0,0,0.12)] hover:bg-green-900/20 hover:border-green-900/20 transition-all duration-300 text-black">
-                  <div className="flex items-center justify-center p-3 rounded-xl shadow-lg bg-white/10 backdrop-blur-md border border-white/10">
-                    <CurrencyDollarIcon className="h-6 w-6 text-gray-800" />
-                  </div>
+                return (
+                  <div
+                    key={idx}
+                    className="rounded-lg p-4
+                                bg-green-900/10
+                                border border-white/30 shadow-sm"
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-6 h-6 rounded-full 
+                                      bg-gradient-to-br from-green-600 to-green-400 
+                                      text-white text-[12px] font-semibold flex items-center justify-center shadow"
+                        >
+                          {idx + 1}
+                        </div>
 
-                  <div className="flex flex-col items-start justify-center leading-tight w-full"> 
-                        <h2 className="text-[16px] font-semibold tracking-tight text-black whitespace-nowrap">6</h2> 
-                        <h2 className="text-[11px] tracking-wide text-black whitespace-nowrap"> Ongoing</h2>
-                  </div>
+                        <span className="text-[12px] font-semibold text-gray-800 tracking-wide">
+                          {shift.label}
+                        </span>
+                      </div>
 
-                </div>
-
-                {/* card 6 */}
-                <div className="flex items-center justify-between  px-4 py-3 gap-4 rounded-[14px] bg-white/30 backdrop-blur-2xl border border-white/15 shadow-[0_10px_35px_rgba(0,0,0,0.12)] hover:bg-green-900/20 hover:border-green-900/20 transition-all duration-300 text-black">
-                  <div className="flex items-center justify-center p-3 rounded-xl shadow-lg bg-white/10 backdrop-blur-md border border-white/10">
-                    <CurrencyDollarIcon className="h-6 w-6 text-gray-800" />
-                  </div>
-
-                    <div className="flex flex-col items-start justify-center leading-tight w-full"> 
-                        <h2 className="text-[16px] font-semibold tracking-tight text-black whitespace-nowrap">5</h2> 
-                        <h2 className="text-[11px] tracking-wide text-black whitespace-nowrap"> Scheduled</h2>
+                      <span
+                        className="text-[12px] 
+                                    bg-yellow-400/20 text-yellow-700 
+                                    px-3 py-1 rounded-[5px] font-semibold border border-gray-200"
+                      >
+                        {startTime} - {endTime}
+                      </span>
                     </div>
 
-                </div>
+                    <div className="flex flex-col gap-2">
+                      {shift.patients.length > 0 ? (
+                        shift.patients.map((p, i) => {
+                          const fullName = `${p.firstName} ${p.middleName || ""} ${p.lastName}`;
+
+                          return (
+                            <div
+                              key={i}
+                              className="flex items-center justify-between 
+                                          bg-white/70 border border-white/40 
+                                          rounded-md px-3 py-2 backdrop-blur-sm"
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className="w-5 h-5 flex items-center font-semibold justify-center text-[12px] bg-gray-200 rounded">
+                                  {i + 1}
+                                </div>
+
+                                <span className="text-[12px] text-gray-700 font-semibold">
+                                  {fullName}
+                                </span>
+                              </div>
+
+                              <div
+                                className={`text-[9px] px-3 py-1 rounded-full font-semibold border border-gray-200
+                          ${
+                            status === "COMPLETED"
+                              ? "bg-green-500/20 text-green-700"
+                              : status === "ONGOING"
+                                ? "bg-blue-500/20 text-blue-700"
+                                : "bg-gray-300/40 text-gray-600"
+                          }`}
+                              >
+                                {status}
+                              </div>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <span className="text-gray-400 text-[10px]">
+                          No patients
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-
-            {/* start: main contents */}
-            <div className="w-full flex items-start justify-start grid grid-cols-2 gap-5">
-               <div className="w-full flex flex-col items-center justify-center px-4 py-3 rounded-[14px] bg-white/30 backdrop-blur-2xl border border-white/15 shadow-[0_10px_35px_rgba(0,0,0,0.12)]">
- 
-                  <div className="w-full flex items-center justify-between border-b border-gray-900/10 py-4 px-2">
-                    <div className="flex items-center gap-3">
-                      <img src={wanglin} className="w-15 h-15 rounded-full object-cover border border-gray-200" alt="" />
-                      <div className="flex flex-col gap-[2px]">
-                        <h2 className="text-black font-semibold text-[14px]">Sarah Dimaculangan</h2>
-                        <h2 className="text-blue-800 font-medium text-[12px]">Nurse</h2>
-                        <h2 className="text-gray-800 font-medium text-[10px]">ID: Staff-001</h2>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center rounded-lg p-2 bg-black/10 backdrop-blur-2xl border border-gray-200 shadow-xl gap-3">
-                        <CalendarDaysIcon className="h-4 w-4 text-gray-700" />
-                        <h2 className="font-medium text-gray-700 text-[10px]">2 Shifts</h2>
-                      </div>
-
-                      <div className="flex items-center rounded-lg p-2 bg-black/10 backdrop-blur-2xl border border-gray-200 shadow-xl gap-3">
-                        <CalendarDaysIcon className="h-4 w-4 text-gray-700" />
-                        <h2 className="font-medium text-gray-700 text-[10px]">6 Patients</h2>
-                      </div>
-                    </div>
-                  </div>
-  
-                  <div className="w-full overflow-x-auto">
-                    <table className="w-full text-[10px]">
-
-                      <thead className="bg-[#1b4486] backdrop-blur-xl">
-                        <tr className="border-b border-gray-900/10 text-white/90">
-                          <th className="py-2 px-2 text-left font-medium text-[9px]">#</th>
-                          <th className="py-2 px-2 text-left font-medium text-[9px] uppercase">Shift</th>
-                          <th className="py-2 px-2 text-left font-medium text-[9px] uppercase">Time</th>
-                          <th className="py-2 px-2 text-center font-medium text-[9px] uppercase">Patients</th>
-                          <th className="py-2 px-2 text-center font-medium text-[9px] uppercase">Status</th>
-                        </tr>
-                      </thead>
-
-                      <tbody> 
-                        <tr className="border-b border-gray-900/5">
-                          <td className="py-2 px-2">
-                            <div className="h-6 w-6 flex items-center justify-center bg-[#1b4486] rounded-[2px] text-white text-[10px] font-semibold">
-                              1
-                            </div>
-                          </td>
-
-                          <td className="px-2 text-gray-600">Morning Shift</td>
-                          <td className="px-2 text-gray-600">08:00 - 12:00</td>
-
-                          <td className="px-2">
-                            <div className="flex justify-center gap-2">
-
-                              {[
-                                { name: "Liam Santos", status: "Completed" },
-                                { name: "Noah Reyes", status: "Completed" },
-                                { name: "Ethan Cruz", status: "Completed" }
-                              ].map((patient, i) => (
-                                <AvatarTooltip key={i} patient={patient}>
-                                  <img
-                                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(patient.name)}`}
-                                    className="w-6 h-6 rounded-full cursor-pointer"
-                                    alt="avatar"
-                                  />
-                                </AvatarTooltip>
-                              ))}
-
-                            </div>
-                          </td>
-
-                          <td className="px-2">
-                            <div className="flex justify-center">
-                              <div className="flex items-center py-1 px-2 gap-1 bg-green-500/20 border border-green-500/20 rounded-full">
-                                <CheckCircleIcon className="w-4 h-4 text-green-800" />
-                                <span className="text-green-800 font-medium">Completed</span>
-                              </div>
-                            </div>
-                          </td>
-                        </tr> 
-
-                        <tr className="border-b border-gray-900/5">
-                          <td className="py-2 px-2">
-                            <div className="h-6 w-6 flex items-center justify-center bg-[#1b4486] rounded-[2px] text-white text-[10px] font-semibold"> 2 </div>
-                          </td>
-
-                          <td className="px-2 text-gray-600">Afternoon Shift</td>
-                          <td className="px-2 text-gray-600">13:00 - 17:00</td>
-
-                          <td className="px-2">
-                            <div className="flex justify-center gap-2">
-
-                              {[
-                                { name: "Anna Dizon", status: "Completed" },
-                                { name: "Sophia Garcia", status: "Completed" },
-                                { name: "Isabella Tan", status: "Completed" }
-                              ].map((patient, i) => (
-                                <AvatarTooltip key={i} patient={patient}>
-                                  <img
-                                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(patient.name)}`}
-                                    className="w-6 h-6 rounded-full cursor-pointer"
-                                    alt="avatar"
-                                  />
-                                </AvatarTooltip>
-                              ))}
-
-                            </div>
-                          </td>
-
-                          <td className="px-2">
-                            <div className="flex justify-center">
-                              <div className="flex items-center py-1 px-2 gap-1 bg-green-500/20 border border-green-500/20 rounded-full">
-                                <CheckCircleIcon className="w-4 h-4 text-green-800" />
-                                <span className="text-green-800 font-medium">Completed</span>
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-
-                      </tbody>
-                    </table>
-                  </div>
-
-                </div>
-
-                <div className="w-full flex flex-col items-center justify-center px-4 py-3 rounded-[14px] bg-white/30 backdrop-blur-2xl border border-white/15 shadow-[0_10px_35px_rgba(0,0,0,0.12)]">
-                  {/* header */}
-                  <div className="w-full flex items-center justify-between border-b border-gray-900/10 py-4 px-2">
-                    <div className="flex items-center gap-3">
-                      <img src={wanglin} className="w-15 h-15 rounded-full object-cover border border-gray-200" alt="" />
-                      <div className="flex flex-col gap-[2px]">
-                        <h2 className="text-black font-semibold text-[14px]">Sarah Dimaculangan</h2>
-                        <h2 className="text-blue-800 font-medium text-[12px]">Nurse</h2>
-                        <h2 className="text-gray-800 font-medium text-[10px]">ID: Staff-001</h2>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center rounded-lg p-2 bg-black/10 backdrop-blur-2xl border border-gray-200 shadow-xl gap-3">
-                        <CalendarDaysIcon className="h-4 w-4 text-gray-700" />
-                        <h2 className="font-medium text-gray-700 text-[10px]">2 Shifts</h2>
-                      </div>
-
-                      <div className="flex items-center rounded-lg p-2 bg-black/10 backdrop-blur-2xl border border-gray-200 shadow-xl gap-3">
-                        <CalendarDaysIcon className="h-4 w-4 text-gray-700" />
-                        <h2 className="font-medium text-gray-700 text-[10px]">6 Patients</h2>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* table */}
-                  <div className="w-full overflow-x-auto">
-                    <table className="w-full text-[10px]">
-
-                      <thead className="bg-[#1b4486] backdrop-blur-xl">
-                        <tr className="border-b border-gray-900/10 text-white/90">
-                          <th className="py-2 px-2 text-left font-medium text-[9px]">#</th>
-                          <th className="py-2 px-2 text-left font-medium text-[9px] uppercase">Shift</th>
-                          <th className="py-2 px-2 text-left font-medium text-[9px] uppercase">Time</th>
-                          <th className="py-2 px-2 text-center font-medium text-[9px] uppercase">Patients</th>
-                          <th className="py-2 px-2 text-center font-medium text-[9px] uppercase">Status</th>
-                        </tr>
-                      </thead>
-
-                      <tbody>
- 
-                        <tr className="border-b border-gray-900/5">
-                          <td className="py-2 px-2">
-                            <div className="h-6 w-6 flex items-center justify-center bg-[#1b4486] rounded-[2px] text-white text-[10px] font-semibold"> 1 </div>
-                          </td>
-
-                          <td className="px-2 text-gray-600">Morning Shift</td>
-                          <td className="px-2 text-gray-600">08:00 - 12:00</td>
-
-                          <td className="px-2">
-                            <div className="flex justify-center gap-2">
-
-                              {[
-                                { name: "Liam Santos", status: "Completed" },
-                                { name: "Noah Reyes", status: "Completed" },
-                                { name: "Ethan Cruz", status: "Completed" }
-                              ].map((patient, i) => (
-                                <AvatarTooltip key={i} patient={patient}>
-                                  <img
-                                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(patient.name)}`}
-                                    className="w-6 h-6 rounded-full cursor-pointer"
-                                    alt="avatar"
-                                  />
-                                </AvatarTooltip>
-                              ))}
-
-                            </div>
-                          </td>
-
-                          <td className="px-2">
-                            <div className="flex justify-center">
-                              <div className="flex items-center py-1 px-2 gap-1 bg-green-500/20 border border-green-500/20 rounded-full">
-                                <CheckCircleIcon className="w-4 h-4 text-green-800" />
-                                <span className="text-green-800 font-medium">Completed</span>
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
- 
-                        <tr className="border-b border-gray-900/5">
-                          <td className="py-2 px-2">
-                            <div className="h-6 w-6 flex items-center justify-center bg-[#1b4486] rounded-[2px] text-white text-[10px] font-semibold"> 2 </div>
-                          </td>
-
-                          <td className="px-2 text-gray-600">Afternoon Shift</td>
-                          <td className="px-2 text-gray-600">13:00 - 17:00</td>
-
-                          <td className="px-2">
-                            <div className="flex justify-center gap-2">
-
-                              {[
-                                { name: "Anna Dizon", status: "Completed" },
-                                { name: "Sophia Garcia", status: "Completed" },
-                                { name: "Isabella Tan", status: "Completed" }
-                              ].map((patient, i) => (
-                                <AvatarTooltip key={i} patient={patient}>
-                                  <img
-                                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(patient.name)}`}
-                                    className="w-6 h-6 rounded-full cursor-pointer"
-                                    alt="avatar"
-                                  />
-                                </AvatarTooltip>
-                              ))}
-
-                            </div>
-                          </td>
-
-                          <td className="px-2">
-                            <div className="flex justify-center">
-                              <div className="flex items-center py-1 px-2 gap-1 bg-green-500/20 border border-green-500/20 rounded-full">
-                                <CheckCircleIcon className="w-4 h-4 text-green-800" />
-                                <span className="text-green-800 font-medium">Completed</span>
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-
-                        <tr className="border-b border-gray-900/5">
-                          <td className="py-2 px-2">
-                            <div className="h-6 w-6 flex items-center justify-center bg-[#1b4486] rounded-[2px] text-white text-[10px] font-semibold"> 1 </div>
-                          </td>
-
-                          <td className="px-2 text-gray-600">Morning Shift</td>
-                          <td className="px-2 text-gray-600">08:00 - 12:00</td>
-
-                          <td className="px-2">
-                            <div className="flex justify-center gap-2">
-
-                              {[
-                                { name: "Liam Santos", status: "Completed" },
-                                { name: "Noah Reyes", status: "Completed" },
-                                { name: "Ethan Cruz", status: "Completed" }
-                              ].map((patient, i) => (
-                                <AvatarTooltip key={i} patient={patient}>
-                                  <img
-                                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(patient.name)}`}
-                                    className="w-6 h-6 rounded-full cursor-pointer"
-                                    alt="avatar"
-                                  />
-                                </AvatarTooltip>
-                              ))}
-
-                            </div>
-                          </td>
-
-                          <td className="px-2">
-                            <div className="flex justify-center">
-                              <div className="flex items-center py-1 px-2 gap-1 bg-green-500/20 border border-green-500/20 rounded-full">
-                                <CheckCircleIcon className="w-4 h-4 text-green-800" />
-                                <span className="text-green-800 font-medium">Completed</span>
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-
-                      </tbody>
-                    </table>
-                  </div>
-
-                </div>
-
-                <div className="w-full flex flex-col items-center justify-center px-4 py-3 rounded-[14px] bg-white/30 backdrop-blur-2xl border border-white/15 shadow-[0_10px_35px_rgba(0,0,0,0.12)]">
-                  {/* header */}
-                  <div className="w-full flex items-center justify-between border-b border-gray-900/10 py-4 px-2">
-                    <div className="flex items-center gap-3">
-                      <img src={wanglin} className="w-15 h-15 rounded-full object-cover border border-gray-200" alt="" />
-                      <div className="flex flex-col gap-[2px]">
-                        <h2 className="text-black font-semibold text-[14px]">Sarah Dimaculangan</h2>
-                        <h2 className="text-blue-800 font-medium text-[12px]">Nurse</h2>
-                        <h2 className="text-gray-800 font-medium text-[10px]">ID: Staff-001</h2>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center rounded-lg p-2 bg-black/10 backdrop-blur-2xl border border-gray-200 shadow-xl gap-3">
-                        <CalendarDaysIcon className="h-4 w-4 text-gray-700" />
-                        <h2 className="font-medium text-gray-700 text-[10px]">2 Shifts</h2>
-                      </div>
-
-                      <div className="flex items-center rounded-lg p-2 bg-black/10 backdrop-blur-2xl border border-gray-200 shadow-xl gap-3">
-                        <CalendarDaysIcon className="h-4 w-4 text-gray-700" />
-                        <h2 className="font-medium text-gray-700 text-[10px]">6 Patients</h2>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* table */}
-                  <div className="w-full overflow-x-auto">
-                    <table className="w-full text-[10px]">
-
-                      <thead className="bg-[#1b4486] backdrop-blur-xl">
-                        <tr className="border-b border-gray-900/10 text-white/90">
-                          <th className="py-2 px-2 text-left font-medium text-[9px]">#</th>
-                          <th className="py-2 px-2 text-left font-medium text-[9px] uppercase">Shift</th>
-                          <th className="py-2 px-2 text-left font-medium text-[9px] uppercase">Time</th>
-                          <th className="py-2 px-2 text-center font-medium text-[9px] uppercase">Patients</th>
-                          <th className="py-2 px-2 text-center font-medium text-[9px] uppercase">Status</th>
-                        </tr>
-                      </thead>
-
-                      <tbody>
- 
-                        <tr className="border-b border-gray-900/5">
-                          <td className="py-2 px-2">
-                            <div className="h-6 w-6 flex items-center justify-center bg-[#1b4486] rounded-[2px] text-white text-[10px] font-semibold"> 1 </div>
-                          </td>
-
-                          <td className="px-2 text-gray-600">Morning Shift</td>
-                          <td className="px-2 text-gray-600">08:00 - 12:00</td>
-
-                          <td className="px-2">
-                            <div className="flex justify-center gap-2">
-
-                              {[
-                                { name: "Liam Santos", status: "Completed" },
-                                { name: "Noah Reyes", status: "Completed" },
-                                { name: "Ethan Cruz", status: "Completed" }
-                              ].map((patient, i) => (
-                                <AvatarTooltip key={i} patient={patient}>
-                                  <img
-                                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(patient.name)}`}
-                                    className="w-6 h-6 rounded-full cursor-pointer"
-                                    alt="avatar"
-                                  />
-                                </AvatarTooltip>
-                              ))}
-
-                            </div>
-                          </td>
-
-                          <td className="px-2">
-                            <div className="flex justify-center">
-                              <div className="flex items-center py-1 px-2 gap-1 bg-green-500/20 border border-green-500/20 rounded-full">
-                                <CheckCircleIcon className="w-4 h-4 text-green-800" />
-                                <span className="text-green-800 font-medium">Completed</span>
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
- 
-                        <tr className="border-b border-gray-900/5">
-                          <td className="py-2 px-2">
-                            <div className="h-6 w-6 flex items-center justify-center bg-[#1b4486] rounded-[2px] text-white text-[10px] font-semibold"> 2 </div>
-                          </td>
-
-                          <td className="px-2 text-gray-600">Afternoon Shift</td>
-                          <td className="px-2 text-gray-600">13:00 - 17:00</td>
-
-                          <td className="px-2">
-                            <div className="flex justify-center gap-2">
-
-                              {[
-                                { name: "Anna Dizon", status: "Completed" },
-                                { name: "Sophia Garcia", status: "Completed" },
-                                { name: "Isabella Tan", status: "Completed" }
-                              ].map((patient, i) => (
-                                <AvatarTooltip key={i} patient={patient}>
-                                  <img
-                                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(patient.name)}`}
-                                    className="w-6 h-6 rounded-full cursor-pointer"
-                                    alt="avatar"
-                                  />
-                                </AvatarTooltip>
-                              ))}
-
-                            </div>
-                          </td>
-
-                          <td className="px-2">
-                            <div className="flex justify-center">
-                              <div className="flex items-center py-1 px-2 gap-1 bg-green-500/20 border border-green-500/20 rounded-full">
-                                <CheckCircleIcon className="w-4 h-4 text-green-800" />
-                                <span className="text-green-800 font-medium">Completed</span>
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-
-                        <tr className="border-b border-gray-900/5">
-                          <td className="py-2 px-2">
-                            <div className="h-6 w-6 flex items-center justify-center bg-[#1b4486] rounded-[2px] text-white text-[10px] font-semibold"> 1 </div>
-                          </td>
-
-                          <td className="px-2 text-gray-600">Morning Shift</td>
-                          <td className="px-2 text-gray-600">08:00 - 12:00</td>
-
-                          <td className="px-2">
-                            <div className="flex justify-center gap-2">
-
-                              {[
-                                { name: "Liam Santos", status: "Completed" },
-                                { name: "Noah Reyes", status: "Completed" },
-                                { name: "Ethan Cruz", status: "Completed" }
-                              ].map((patient, i) => (
-                                <AvatarTooltip key={i} patient={patient}>
-                                  <img
-                                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(patient.name)}`}
-                                    className="w-6 h-6 rounded-full cursor-pointer"
-                                    alt="avatar"
-                                  />
-                                </AvatarTooltip>
-                              ))}
-
-                            </div>
-                          </td>
-
-                          <td className="px-2">
-                            <div className="flex justify-center">
-                              <div className="flex items-center py-1 px-2 gap-1 bg-green-500/20 border border-green-500/20 rounded-full">
-                                <CheckCircleIcon className="w-4 h-4 text-green-800" />
-                                <span className="text-green-800 font-medium">Completed</span>
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-
-                      </tbody>
-                    </table>
-                  </div>
-
-                </div>
-
-                <div className="w-full flex flex-col items-center justify-center px-4 py-3 rounded-[14px] bg-white/30 backdrop-blur-2xl border border-white/15 shadow-[0_10px_35px_rgba(0,0,0,0.12)]">
-                  {/* header */}
-                  <div className="w-full flex items-center justify-between border-b border-gray-900/10 py-4 px-2">
-                    <div className="flex items-center gap-3">
-                      <img src={wanglin} className="w-15 h-15 rounded-full object-cover border border-gray-200" alt="" />
-                      <div className="flex flex-col gap-[2px]">
-                        <h2 className="text-black font-semibold text-[14px]">Sarah Dimaculangan</h2>
-                        <h2 className="text-blue-800 font-medium text-[12px]">Nurse</h2>
-                        <h2 className="text-gray-800 font-medium text-[10px]">ID: Staff-001</h2>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center rounded-lg p-2 bg-black/10 backdrop-blur-2xl border border-gray-200 shadow-xl gap-3">
-                        <CalendarDaysIcon className="h-4 w-4 text-gray-700" />
-                        <h2 className="font-medium text-gray-700 text-[10px]">2 Shifts</h2>
-                      </div>
-
-                      <div className="flex items-center rounded-lg p-2 bg-black/10 backdrop-blur-2xl border border-gray-200 shadow-xl gap-3">
-                        <CalendarDaysIcon className="h-4 w-4 text-gray-700" />
-                        <h2 className="font-medium text-gray-700 text-[10px]">6 Patients</h2>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* table */}
-                  <div className="w-full overflow-x-auto">
-                    <table className="w-full text-[10px]">
-
-                      <thead className="bg-[#1b4486] backdrop-blur-xl">
-                        <tr className="border-b border-gray-900/10 text-white/90">
-                          <th className="py-2 px-2 text-left font-medium text-[9px]">#</th>
-                          <th className="py-2 px-2 text-left font-medium text-[9px] uppercase">Shift</th>
-                          <th className="py-2 px-2 text-left font-medium text-[9px] uppercase">Time</th>
-                          <th className="py-2 px-2 text-center font-medium text-[9px] uppercase">Patients</th>
-                          <th className="py-2 px-2 text-center font-medium text-[9px] uppercase">Status</th>
-                        </tr>
-                      </thead>
-
-                      <tbody>
- 
-                        <tr className="border-b border-gray-900/5">
-                          <td className="py-2 px-2">
-                            <div className="h-6 w-6 flex items-center justify-center bg-[#1b4486] rounded-[2px] text-white text-[10px] font-semibold"> 1 </div>
-                          </td>
-
-                          <td className="px-2 text-gray-600">Morning Shift</td>
-                          <td className="px-2 text-gray-600">08:00 - 12:00</td>
-
-                          <td className="px-2">
-                            <div className="flex justify-center gap-2">
-
-                              {[
-                                { name: "Liam Santos", status: "Completed" },
-                                { name: "Noah Reyes", status: "Completed" },
-                                { name: "Ethan Cruz", status: "Completed" }
-                              ].map((patient, i) => (
-                                <AvatarTooltip key={i} patient={patient}>
-                                  <img
-                                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(patient.name)}`}
-                                    className="w-6 h-6 rounded-full cursor-pointer"
-                                    alt="avatar"
-                                  />
-                                </AvatarTooltip>
-                              ))}
-
-                            </div>
-                          </td>
-
-                          <td className="px-2">
-                            <div className="flex justify-center">
-                              <div className="flex items-center py-1 px-2 gap-1 bg-green-500/20 border border-green-500/20 rounded-full">
-                                <CheckCircleIcon className="w-4 h-4 text-green-800" />
-                                <span className="text-green-800 font-medium">Completed</span>
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
- 
-                        <tr className="border-b border-gray-900/5">
-                          <td className="py-2 px-2">
-                            <div className="h-6 w-6 flex items-center justify-center bg-[#1b4486] rounded-[2px] text-white text-[10px] font-semibold"> 2 </div>
-                          </td>
-
-                          <td className="px-2 text-gray-600">Afternoon Shift</td>
-                          <td className="px-2 text-gray-600">13:00 - 17:00</td>
-
-                          <td className="px-2">
-                            <div className="flex justify-center gap-2">
-
-                              {[
-                                { name: "Anna Dizon", status: "Completed" },
-                                { name: "Sophia Garcia", status: "Completed" },
-                                { name: "Isabella Tan", status: "Completed" }
-                              ].map((patient, i) => (
-                                <AvatarTooltip key={i} patient={patient}>
-                                  <img
-                                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(patient.name)}`}
-                                    className="w-6 h-6 rounded-full cursor-pointer"
-                                    alt="avatar"
-                                  />
-                                </AvatarTooltip>
-                              ))}
-
-                            </div>
-                          </td>
-
-                          <td className="px-2">
-                            <div className="flex justify-center">
-                              <div className="flex items-center py-1 px-2 gap-1 bg-green-500/20 border border-green-500/20 rounded-full">
-                                <CheckCircleIcon className="w-4 h-4 text-green-800" />
-                                <span className="text-green-800 font-medium">Completed</span>
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-
-                        <tr className="border-b border-gray-900/5">
-                          <td className="py-2 px-2">
-                            <div className="h-6 w-6 flex items-center justify-center bg-[#1b4486] rounded-[2px] text-white text-[10px] font-semibold"> 1 </div>
-                          </td>
-
-                          <td className="px-2 text-gray-600">Morning Shift</td>
-                          <td className="px-2 text-gray-600">08:00 - 12:00</td>
-
-                          <td className="px-2">
-                            <div className="flex justify-center gap-2">
-
-                              {[
-                                { name: "Liam Santos", status: "Completed" },
-                                { name: "Noah Reyes", status: "Completed" },
-                                { name: "Ethan Cruz", status: "Completed" }
-                              ].map((patient, i) => (
-                                <AvatarTooltip key={i} patient={patient}>
-                                  <img
-                                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(patient.name)}`}
-                                    className="w-6 h-6 rounded-full cursor-pointer"
-                                    alt="avatar"
-                                  />
-                                </AvatarTooltip>
-                              ))}
-
-                            </div>
-                          </td>
-
-                          <td className="px-2">
-                            <div className="flex justify-center">
-                              <div className="flex items-center py-1 px-2 gap-1 bg-green-500/20 border border-green-500/20 rounded-full">
-                                <CheckCircleIcon className="w-4 h-4 text-green-800" />
-                                <span className="text-green-800 font-medium">Completed</span>
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-
-                      </tbody>
-                    </table>
-                  </div>
-
-                </div>
-
-    
-    
-            </div>
-            {/* end: main contents */}
-
-            
-        </div>
-    )
+          </div>
+        ))}
+      </div>
+      {/* end: main contents */}
+    </div>
+  );
 }

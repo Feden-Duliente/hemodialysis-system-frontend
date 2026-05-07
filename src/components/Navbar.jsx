@@ -1,37 +1,50 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useRef } from "react";
 import { useReactToPrint } from "react-to-print";
 import ReportLayout from "../pages/philHealthReport";
-
-import logo from "../assets/hemodialysis.png";
-import logout from "../assets/logout.png";
-import bot from "../assets/bot.png";
-import hemobot from "../assets/hemo-bot.png";
-import close from "../assets/close.png";
-import send from "../assets/send.png";
-import fileIcon from "../assets/attachement.png";
 
 import {
   HomeIcon,
   CurrencyDollarIcon,
   BeakerIcon,
   IdentificationIcon,
-  CalendarDaysIcon, 
+  CalendarDaysIcon,
   ClipboardDocumentListIcon,
-  XMarkIcon 
+  XMarkIcon,
+  ArrowRightOnRectangleIcon,
 } from "@heroicons/react/24/solid";
-import { DownloadIcon,  } from "lucide-react";
+
+import { DownloadIcon } from "lucide-react";
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
-  const [openCalendar, setOpenCalendar] = useState(false);
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [activeReport, setActiveReport] = useState(null);
 
+  const location = useLocation();
 
-  // pdf report fucntion
+  const [selectedReports, setSelectedReports] = useState([]);
+
+  const handleSelect = (type) => {
+    if (type === "all") {
+      if (selectedReports.includes("all")) {
+        setSelectedReports([]);
+      } else {
+        setSelectedReports(["all"]);
+      }
+      return;
+    }
+
+    let updated = selectedReports.filter((r) => r !== "all");
+
+    if (updated.includes(type)) {
+      updated = updated.filter((r) => r !== type);
+    } else {
+      updated.push(type);
+    }
+
+    setSelectedReports(updated);
+  };
+
   const reportRef = useRef();
   const handlePrint = useReactToPrint({
     contentRef: reportRef,
@@ -40,151 +53,231 @@ export default function Navbar() {
 
   return (
     <>
-      <div className="h-[35rem] w-full px-4 py-7 flex flex-col justify-between text-white">
-        <div className="flex flex-col items-center justify-between gap-6 bg-[#0c5148] rounded-lg shadow lg px-4 py-4 h-full">
+      <div className="h-[25rem] w-full px-4 py-7 flex flex-col justify-between text-white">
+        <div className="flex flex-col items-center justify-between gap-6 bg-gradient-to-b from-green-800 to-green-700 rounded-lg shadow-lg px-4 py-4 h-full">
           <div className="flex flex-col items-center justify-center gap-6">
             <Link to="/">
-              <HomeIcon className="w-6 h-6 transition-transform duration-200 hover:scale-120 hover:text-green-600" />
+              <HomeIcon
+                className={`w-6 h-6 transition-transform duration-200
+                  ${
+                    location.pathname === "/"
+                      ? "text-white/50 scale-125"
+                      : "hover:scale-150 hover:text-white"
+                  }
+                `}
+              />
             </Link>
 
             <Link to="/doctor-fees">
-              <CurrencyDollarIcon className="w-6 h-6 transition-transform duration-200 hover:scale-120 hover:text-green-600" />
+              <CurrencyDollarIcon
+                className={`w-6 h-6 transition-transform duration-200 
+                  ${
+                    location.pathname === "/doctor-fees"
+                      ? "text-white/50 scale-125"
+                      : "hover:scale-150 hover:text-white"
+                  }
+                `}
+              />
             </Link>
 
             <Link to="/expiring-labs">
-              <BeakerIcon className="w-6 h-6 transition-transform duration-200 hover:scale-120 hover:text-green-600" />
+              <BeakerIcon
+                className={`w-6 h-6 transition-transform duration-200 
+                  ${
+                    location.pathname === "/expiring-labs"
+                      ? "text-white/50 scale-125"
+                      : "hover:scale-150 hover:text-white"
+                  }
+                `}
+              />
             </Link>
 
             <Link to="/philhealth">
-              <IdentificationIcon className="w-6 h-6 transition-transform duration-200 hover:scale-120 hover:text-green-600" />
+              <IdentificationIcon
+                className={`w-6 h-6 transition-transform duration-200 
+                  ${
+                    location.pathname === "/philhealth"
+                      ? "text-white/50 scale-125"
+                      : "hover:scale-150 hover:text-white"
+                  }
+                `}
+              />
             </Link>
 
             <Link to="/schedules">
-              <CalendarDaysIcon className="w-6 h-6 transition-transform duration-200 hover:scale-120 hover:text-green-600" />
+              <CalendarDaysIcon
+                className={`w-6 h-6 transition-transform duration-200 
+                  ${
+                    location.pathname === "/schedules"
+                      ? "text-white/50 scale-125"
+                      : "hover:scale-150 hover:text-white"
+                  }
+                `}
+              />
             </Link>
 
             <Link to="/activity-logs">
-              <ClipboardDocumentListIcon className="w-6 h-6 transition-transform duration-200 hover:scale-120 hover:text-green-600" />
+              <ClipboardDocumentListIcon
+                className={`w-6 h-6 transition-transform duration-200 
+                  ${
+                    location.pathname === "/activity-logs"
+                      ? "text-white/50 scale-125"
+                      : "hover:scale-150 hover:text-white"
+                  }
+                `}
+              />
             </Link>
-
           </div>
 
           <div className="flex flex-col items-center justify-center gap-3">
-            <div className="relative inline-block"> 
-              <button onClick={() => setOpenCalendar(true)} className="flex items-center justify-center transition" >
-                <CalendarDaysIcon className="w-6 h-6 transition-transform duration-200 hover:scale-110 hover:text-green-600" />
-              </button>
- 
-              {openCalendar && (
-                <div className="absolute left-20 bottom-4 w-64 rounded-2xl bg-white/20 backdrop-blur-2xl border border-white/30 shadow-2xl z-50 overflow-hidden p-4">
- 
-                  <div className="flex items-center justify-between mb-3">
-                    <h2 className="text-[11px] font-semibold text-gray-800"> Select Date Range </h2> 
-                    <button onClick={() => setOpenCalendar(false)} className="p-1 rounded-md hover:bg-white/30 transition" >
-                      <XMarkIcon className="w-4 h-4 text-gray-700 hover:text-red-600" />
-                    </button>
-                  </div>
- 
-                  <div className="flex flex-col gap-1 mb-3">
-                    <label className="text-[9px] text-gray-700">Start Date</label>
-                    <input
-                      type="date"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                      className="w-full px-2 py-1 text-[10px] rounded-lg bg-white/30 border border-white/40 backdrop-blur-xl text-gray-800 outline-none"
-                    />
-                  </div>
- 
-                  <div className="flex flex-col gap-1 mb-4">
-                    <label className="text-[9px] text-gray-700">End Date</label>
-                    <input
-                      type="date"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      className="w-full px-2 py-1 text-[10px] rounded-lg bg-white/30 border border-white/40 backdrop-blur-xl text-gray-800 outline-none"
-                    />
-                  </div>
- 
-                  <div className="flex gap-2"> 
-                    <button
-                      onClick={() => {
-                        console.log("Date Range:", startDate, endDate);
-                        setOpenCalendar(false);
-                      }}
-                      className="flex-1 px-3 py-1 text-[10px] rounded-lg bg-[#0c5148]/70 text-white hover:bg-[#0c5148] transition"
-                    >
-                      Apply
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setStartDate("");
-                        setEndDate("");
-                      }}
-                      className="flex-1 px-3 py-1 text-[10px] rounded-lg bg-white/30 text-gray-800 hover:bg-white/50 transition"
-                    >
-                      Clear
-                    </button>
-
-                  </div>
-
-                </div>
-              )}
-
-            </div>
-
             <div className="relative inline-block">
-              <button onClick={() => setOpen(!open)} className="flex items-center justify-center  transition"  >
-                <DownloadIcon className="w-6 h-6 transition-transform duration-200 hover:scale-110 hover:text-green-600" />
+              <button
+                onClick={() => setOpen(true)}
+                className="flex items-center justify-center"
+              >
+                <DownloadIcon
+                  className={`w-6 h-6 transition-transform duration-200 
+                    ${
+                      open
+                        ? "text-white/50 scale-125"
+                        : "hover:scale-150 hover:text-white"
+                    }
+                  `}
+                />
               </button>
-              {open && (
-                <div className="absolute left-20 bottom-4 w-48 rounded-xl  bg-white/20 backdrop-blur-xl  border border-white/30  shadow-xl z-50 overflow-hidden">
-                  <div className="relative">
-                    <button className="w-full px-4 py-2 text-[10px] font-medium text-black/90  hover:bg-[#1b4486]/70 hover:text-white transition text-center" onClick={() => setActiveReport(activeReport === "all" ? null : "all") } >
-                      ALL REPORTS
-                    </button>
+            </div>
 
-                    {activeReport === "all" && (
-                      <div className="w-full border-t border-white/20">
-                        <button className="w-full px-4 py-2 text-[9px] text-gray-800 font-bold hover:bg-[#9A0000]/70 hover:text-white" onClick={() => { handlePrint(); setOpen(false); setActiveReport(null); }} >
-                          PDF
-                        </button>
+            {open && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                <div className="w-[320px] bg-white rounded-[5px] shadow-2xl border border-gray-200 p-5 relative">
+                  <button
+                    onClick={() => {
+                      setOpen(false);
+                      setSelectedReports([]);
+                    }}
+                    className="absolute top-3 right-3 p-1 rounded-full hover:bg-gray-100 transition"
+                  >
+                    <XMarkIcon className="w-4 h-4 text-gray-500" />
+                  </button>
 
-                        <button className="w-full px-4 py-2 text-[9px] text-gray-800 font-bold hover:bg-[#0c5148]/70 hover:text-white" onClick={() => { console.log("ALL REPORTS EXCEL"); setOpen(false); setActiveReport(null); }} >
-                          EXCEL
-                        </button>
-                      </div>
-                    )}
-
+                  <div className="mb-4">
+                    <h2 className="text-[14px] font-semibold text-gray-900">
+                      Download Report
+                    </h2>
+                    <p className="text-[11px] text-gray-500">
+                      Select report(s) to export as PDF
+                    </p>
                   </div>
 
-                  <div className="relative border-t border-white/20">
-                    <button className="w-full px-4 py-2 text-[10px] font-medium text-black/90 hover:bg-[#1b4486]/70 hover:text-white transition text-center" onClick={() => setActiveReport(activeReport === "phil" ? null : "phil") } >
-                      PHILHEALTH REPORT
+                  <div className="flex flex-col gap-2">
+                    <button
+                      onClick={() => handleSelect("all")}
+                      className={`flex items-center justify-between px-3 py-2 rounded-[5px] border text-[10px] text-black transition
+                        ${
+                          selectedReports.includes("all")
+                            ? "border-blue-500 bg-blue-100"
+                            : "border-gray-200 hover:bg-gray-50"
+                        }
+                      `}
+                    >
+                      <span className="font-medium">All Reports</span>
                     </button>
 
-                    {activeReport === "phil" && (
-                      <div className="w-full border-t border-white/20">
-                        <button className="w-full px-4 py-2 text-[9px] text-gray-800 font-bold hover:bg-[#9A0000]/70 hover:text-white" onClick={() => { console.log("PHILHEALTH PDF"); setOpen(false); setActiveReport(null);  }} >
-                          PDF
-                        </button>
+                    <button
+                      onClick={() => handleSelect("phil")}
+                      className={`flex items-center justify-between px-3 py-2 rounded-[5px] border text-[10px] text-black transition
+                        ${
+                          selectedReports.includes("phil")
+                            ? "border-blue-500 bg-blue-100"
+                            : "border-gray-200 hover:bg-gray-50"
+                        }
+                      `}
+                    >
+                      <span className="font-medium">PhilHealth</span>
+                    </button>
 
-                        <button className="w-full px-4 py-2 text-[9px] text-gray-800 font-bold hover:bg-[#0c5148]/70 hover:text-white" onClick={() => { console.log("PHILHEALTH EXCEL"); setOpen(false); setActiveReport(null); }} >
-                          EXCEL
-                        </button>
-                      </div>
-                    )}
+                    <button
+                      onClick={() => handleSelect("activity")}
+                      className={`flex items-center justify-between px-3 py-2 rounded-[5px] border text-[10px] text-black transition
+                        ${
+                          selectedReports.includes("activity")
+                            ? "border-blue-500 bg-blue-100"
+                            : "border-gray-200 hover:bg-gray-50"
+                        }
+                      `}
+                    >
+                      <span className="font-medium">Activity Logs</span>
+                    </button>
+
+                    <button
+                      onClick={() => handleSelect("doctor")}
+                      className={`flex items-center justify-between px-3 py-2 rounded-[5px] border text-[10px] text-black transition
+                        ${
+                          selectedReports.includes("doctor")
+                            ? "border-blue-500 bg-blue-100"
+                            : "border-gray-200 hover:bg-gray-50"
+                        }
+                      `}
+                    >
+                      <span className="font-medium">Doctor Fees</span>
+                    </button>
+
+                    <button
+                      onClick={() => handleSelect("labs")}
+                      className={`flex items-center justify-between px-3 py-2 rounded-[5px] border text-[10px] text-black transition
+                        ${
+                          selectedReports.includes("labs")
+                            ? "border-blue-500 bg-blue-100"
+                            : "border-gray-200 hover:bg-gray-50"
+                        }
+                      `}
+                    >
+                      <span className="font-medium">Expiring Labs</span>
+                    </button>
+
+                    <button
+                      onClick={() => handleSelect("schedule")}
+                      className={`flex items-center justify-between px-3 py-2 rounded-[5px] border text-[10px] text-black transition
+                        ${
+                          selectedReports.includes("schedule")
+                            ? "border-blue-500 bg-blue-100"
+                            : "border-gray-200 hover:bg-gray-50"
+                        }
+                      `}
+                    >
+                      <span className="font-medium">Schedules</span>
+                    </button>
+                  </div>
+
+                  <div className="mt-5">
+                    <button
+                      disabled={selectedReports.length === 0}
+                      onClick={() => {
+                        if (selectedReports.includes("all")) {
+                          handlePrint();
+                        } else {
+                          console.log("Selected:", selectedReports);
+                        }
+
+                        setOpen(false);
+                        setSelectedReports([]);
+                      }}
+                      className={`w-full py-2 rounded-[5px] text-[10px] font-semibold transition
+                        ${
+                          selectedReports.length
+                            ? "bg-blue-600 text-white hover:bg-blue-700"
+                            : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                        }
+                      `}
+                    >
+                      Download PDF
+                    </button>
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
-
-          <div className="flex flex-col items-center justify-center ">
-          </div>
-
         </div>
-
       </div>
 
       <div className="fixed -left-[10000px] top-0">
